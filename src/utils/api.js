@@ -6,7 +6,6 @@ const headersBody = {
     'x-api-key': key
 }
 
-console.log(key)
 
 export async function checkUser(pid) {
     return await axios.get(`${baseURL}checkuser/${pid}`, {headers: headersBody}).then(res => res).catch((error) => {
