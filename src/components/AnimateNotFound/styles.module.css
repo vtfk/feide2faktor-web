@@ -1,0 +1,10 @@
+.notFound {
+    width: 70%;
+    height: 70%;
+    margin-top: -5vh;
+}
+@media (max-width:640px){
+    .notFound {
+        display:none;
+    }
+}

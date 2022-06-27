@@ -1,0 +1,51 @@
+{
+  "name": "feide2faktor-web",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.16.3",
+    "@testing-library/react": "^12.1.4",
+    "@testing-library/user-event": "^13.5.0",
+    "@vtfk/components": "^0.7.4",
+    "@vtfk/react-oidc": "^1.0.0",
+    "axios": "^0.26.1",
+    "env-cmd": "^10.1.0",
+    "lottie-web": "^5.9.4",
+    "oidc-client": "^1.11.5",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.2.2",
+    "react-scripts": "5.0.0",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start:dev": "env-cmd -e dev react-scripts start",
+    "start:prod": "env-cmd -e prod react-scripts start",
+    "build": "env-cmd -e prod react-scripts build",
+    "test": "env-cmd -e test react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.1",
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2"
+  }
+}

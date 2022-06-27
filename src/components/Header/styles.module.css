@@ -1,0 +1,35 @@
+.header {
+    display:flex;
+    justify-content: space-around;
+    width: 100%;
+    min-height: 4rem;
+    padding-top: 4rem;
+    
+}
+
+.text {
+    margin-left: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.topBar {
+    display:flex;
+    margin-right: 1rem;
+}
+
+.logoText {
+    display: flex;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.img {
+    margin-top: 0.1rem;
+}
+
+@media only screen and (max-width: 1000px) {
+    .header {
+        display: inline-flex;
+        justify-content: center;
+    }
+  }

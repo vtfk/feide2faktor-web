@@ -1,0 +1,32 @@
+.center {
+    display: grid;
+    justify-items: center;
+    align-items: center;
+}
+
+.button {
+    display: flex;
+}
+
+.rejected {
+    padding-right: 0.5rem;
+}
+
+.authenticated {
+    padding-left: 0.5rem;
+    display: none;
+}
+
+.heading {
+    padding-bottom: 5rem;
+    display:grid;
+    width: 50%;
+}
+
+.heading2 {
+    display: flex;
+	justify-content: center;
+	align-items: center;
+    padding-bottom: 1rem;
+    padding-top: 3rem; 
+}

@@ -1,0 +1,30 @@
+.center {
+    display:grid ;
+    margin-top: 2vh;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn {
+    display:flex;
+    justify-content:center;
+}
+
+.heading {
+    display: flex;
+    justify-content:center;
+    margin: 1rem;
+}
+
+.textfield {
+    display: flex;
+    justify-content:center;
+    margin: 1rem;
+}
+
+.qrCode {
+    display: flex;
+    justify-content:center;
+    margin: 1rem;
+}
