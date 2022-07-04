@@ -46,7 +46,7 @@ export default function Login() {
             <div className={styles.button}>
                 <div className={styles.rejected}>
                     <Button onClick={onLogin} >
-                        ID-Porten
+                        Login med ID-Porten
                     </Button>
                 </div>
                 <div className={styles.authenticated}> 

@@ -74,7 +74,7 @@ export async function verifyToken(token, pid) {
 }
 
 export async function deleteMFA(pid) {
-    return await axios.delete(`${baseURL}delete/${pid}`, headersBody).then(res => res).catch((error) => {
+    return await axios.delete(`${baseURL}delete/${pid}`, {headers:headersBody}).then(res => res).catch((error) => {
         if(error.res) {
             return error.res
         } else if(error.request) {

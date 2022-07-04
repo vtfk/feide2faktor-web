@@ -1,12 +1,12 @@
 // React
 import { useState, useEffect } from "react"
-import { Button, Heading3, Spinner, TextField, Dialog, DialogTitle, DialogBody, DialogActions, Heading2, Heading4 } from '@vtfk/components'
+import { Button, Heading3, Spinner, Dialog, DialogTitle, DialogBody, DialogActions, Heading2, Heading4 } from '@vtfk/components'
 import { useSession } from "@vtfk/react-oidc"
 import { useNavigate } from 'react-router-dom'
 import styles from './styles.module.css'
 
 // API
-import { checkUser, getSecret, getQrCode, postMFA, verifyToken, deleteMFA, getName } from "../../utils/api"
+import { checkUser, postMFA, getName } from "../../utils/api"
 
 // Animations
 import AnimateError from "../AnimateError"
@@ -61,30 +61,30 @@ export default function CreateMFA() {
                 const checkMFA = await checkUser(pid)
         
                 if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
-                    console.log('must verify')
+                    // console.log('must verify')
                     navigate('/verifyMFA')
                 }
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.tempSecret && !checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD?.norEduPersonAuthnMethod) {
-                    console.log('User have no MFA, must create one.') 
+                    // console.log('User have no MFA, must create one.') 
                     navigate('/createmfa')
                 } 
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD?.norEduPersonAuthnMethod && !checkMFA.data.userMongo[0]?.tempSecret) {
-                    console.log('must recreate mfa, user not i mongo')
+                    // console.log('must recreate mfa, user not i mongo')
                     navigate('/createmfa')
                 } 
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
-                    console.log('User already have mfa, do you want to recreate?')
+                    // console.log('User already have mfa, do you want to recreate?')
                     navigate('/verified') 
                 }
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
-                    console.log('recreate mfa')
+                    // console.log('recreate mfa')
                 }
                 else {
-                    console.log(checkMFA.status)
-                    console.log(checkMFA.data.userMongo[0]?.secret)
-                    console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
+                    // console.log(checkMFA.status)
+                    // console.log(checkMFA.data.userMongo[0]?.secret)
+                    // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
                 }
-                console.log(checkMFA)
+                // console.log(checkMFA)
                 setIsLoading(false)
             }
         }
@@ -148,44 +148,8 @@ export default function CreateMFA() {
             </div>
         )
     }
-    if(mfaCreated.status === 201 && stateChange === true) {
-        return (
-        <Dialog
-            isOpen={modalOpen}
-            persistent
-            draggable={false}
-            resizeable={false}
-            onDismiss={() => { setIsModalOpen(false)
-        }}
-        >
-            <DialogTitle>
-                <Heading2>
-                    Vellykket    
-                </Heading2>
-            </DialogTitle>
-            <DialogBody>
-                <div className={styles.heading}>
-                    <Heading4>Du har nå opprettet MFA. Trykk OK for å fortsette videre.</Heading4>
-                </div>
-                <div className={styles.qrCode}>
-                    <AnimateSuccess />
-                </div>   
-            </DialogBody>
-            <div className={styles.btn}>
-                <DialogActions>
-                    <Button size='small' onClick={ () => {
-                        setIsModalOpen(false)
-                        setStateChange(false)
-                        navigate('/verifyMFA')
-                    }}
-                        >
-                            OK
-                        </Button>
-                </DialogActions>
-            </div>
-        </Dialog>
-        )
-    } else if (mfaCreated.status !== 201 && stateChange === true) {
+    
+    if (mfaCreated.status !== 201 && stateChange === true) {
         return(
             <Dialog
                 isOpen={modalOpen}
@@ -235,6 +199,40 @@ export default function CreateMFA() {
                             Opprett MFA
                     </Button>
                 </div>
+                <Dialog
+                isOpen={modalOpen}
+                persistent
+                draggable={false}
+                resizeable={false}
+                onDismiss={() => { setIsModalOpen(false)
+            }}
+            >
+                <DialogTitle>
+                    <Heading2>
+                        Vellykket    
+                    </Heading2>
+                </DialogTitle>
+                <DialogBody>
+                    <div className={styles.heading}>
+                        <Heading4>Du har nå opprettet MFA. Trykk OK for å fortsette videre.</Heading4>
+                    </div>
+                    <div className={styles.qrCode}>
+                        <AnimateSuccess />
+                    </div>   
+                </DialogBody>
+                <div className={styles.btn}>
+                    <DialogActions>
+                        <Button size='small' onClick={ () => {
+                            setIsModalOpen(false)
+                            setStateChange(false)
+                            navigate('/verifyMFA')
+                        }}
+                            >
+                                OK
+                            </Button>
+                    </DialogActions>
+                </div>
+            </Dialog>
             </div>
         )
     }

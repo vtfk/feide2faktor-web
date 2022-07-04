@@ -1,6 +1,6 @@
 // React
 import { useState, useEffect } from "react"
-import { Button, Heading3, Spinner, TextField, Dialog, DialogTitle, DialogBody, DialogActions, Heading2, Heading4 } from '@vtfk/components'
+import { Button, Heading3, Spinner, Dialog, DialogTitle, DialogBody, DialogActions, Heading2, Heading4 } from '@vtfk/components'
 import { useSession } from "@vtfk/react-oidc"
 import { useNavigate } from 'react-router-dom'
 import styles from './styles.module.css'
@@ -61,30 +61,25 @@ export default function Verified() {
                 const checkMFA = await checkUser(pid)
         
                 if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
-                    console.log('must verify')
                     navigate('/verifyMFA')
                 }
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.tempSecret && !checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD?.norEduPersonAuthnMethod) {
-                    console.log('User have no MFA, must create one.') 
                     navigate('/createmfa')
                 } 
-                else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD?.norEduPersonAuthnMethod && !checkMFA.data.userMongo[0]?.tempSecret) {
-                    console.log('must recreate mfa, user not i mongo')
+                else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD?.norEduPersonAuthnMethod && !checkMFA.data.userMongo[0]?.tempSecret) { 
                     navigate('/createmfa')
                 } 
-                else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
-                    console.log('User already have mfa, do you want to recreate?')
+                else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {    
                     navigate('/verified') 
                 }
-                else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
-                    console.log('recreate mfa')
+                else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {    
                 }
                 else {
-                    console.log(checkMFA.status)
-                    console.log(checkMFA.data.userMongo[0]?.secret)
-                    console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
+                    // console.log(checkMFA.status)
+                    // console.log(checkMFA.data.userMongo[0]?.secret)
+                    // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
                 }
-                console.log(checkMFA)
+                // console.log(checkMFA)
                 setIsLoading(false)
             }
         }
@@ -145,67 +140,8 @@ export default function Verified() {
             </div>
         )
     }
-    if(deleteData.status === 200) {
-        return (
-            <Dialog
-                    isOpen={modalOpen}
-                    persistent
-                    draggable={false}
-                    resizeable={false}
-                    onDismiss={() => { setIsModalOpen(false)}}
-                >
-                    <DialogTitle>
-                        <Heading2>
-                            Slett MFA
-                        </Heading2>
-                    </DialogTitle>
-                    <DialogBody>
-                        <div className={styles.heading}>
-                            <Heading4>MFA er slettet</Heading4>
-                        </div>
-                        <div className={styles.qrCode}>
-                            <AnimateSuccess />
-                        </div>
-                    </DialogBody>
-                    <div className={styles.btn}>
-                        <DialogActions>
-                            <Button size='small' onClick={ () => {
-                                setIsModalOpen(false); 
-                                navigate('/signedin')
-                                setIsLoading(true); 
-                                }}
-                            >
-                            OK
-                        </Button>
-                        </DialogActions>
-                    </div>
-            </Dialog>
-        )
-    } else if(deleteData.length === 0) {
-        return (
-            <div className={styles.center}>
-                <div className={styles.heading}>
-                    <Heading2>Hei {userName} </Heading2>
-                </div>
-                <div className={styles.heading}>
-                    <Heading3>
-                        Du har allerede opprettet MFA til din feide konto, ønsker du å slette den gamle og opprette en ny? 
-                    </Heading3>
-                </div>    
-                <div className={styles.btn}>
-                    <Button onClick={() => { 
-                        if(window.confirm('Du vil nå slette din eksisterende MFA, du vil ikke ha ny MFA før du oppretter en ny og validerer denne!')) {   
-                            setDeleteState(true)
-                        }
-                        
-                    }}
-                    >
-                        Opprett ny MFA
-                    </Button>
-                </div>
-            </div>
-        )
-    } else if(deleteData.status === 400 || deleteData.status === 404) {
+    
+    if(deleteData.status === 400 || deleteData.status === 404) {
         return(
             <Dialog
                 isOpen={modalOpen}
@@ -229,7 +165,7 @@ export default function Verified() {
                     <DialogActions>
                             <Button size='small' onClick={ () => {
                                 setIsModalOpen(false)
-                                navigate('/checkuser') //Hacky, må fikses!
+                                window.location.reload() //Hacky, må fikses!
                             }}
                                 >
                                     OK
@@ -237,6 +173,63 @@ export default function Verified() {
                     </DialogActions>
                 </div>
             </Dialog>
+        )
+    } else {
+        return (
+            <div className={styles.center}>
+                <div className={styles.heading}>
+                    <Heading2>Hei {userName} </Heading2>
+                </div>
+                <div className={styles.heading}>
+                    <Heading3>
+                        Du har allerede opprettet MFA til din feide konto, ønsker du å slette den gamle og opprette en ny? 
+                    </Heading3>
+                </div>    
+                <div className={styles.btn}>
+                    <Button onClick={() => { 
+                        if(window.confirm('Du vil nå slette din eksisterende MFA, du vil ikke ha ny MFA før du oppretter en ny og validerer denne!')) {   
+                            setDeleteState(true)
+                        }
+                        
+                    }}
+                    >
+                        Opprett ny MFA
+                    </Button>
+                </div>
+                <Dialog
+                    isOpen={modalOpen}
+                    persistent
+                    draggable={false}
+                    resizeable={false}
+                    onDismiss={() => { setIsModalOpen(false)}}
+                >
+                    <DialogTitle>
+                        <Heading2>
+                            Slett MFA
+                        </Heading2>
+                    </DialogTitle>
+                    <DialogBody>
+                        <div className={styles.heading}>
+                            <Heading4>MFA er slettet</Heading4>
+                        </div>
+                        <div className={styles.qrCode}>
+                            <AnimateSuccess />
+                        </div>
+                    </DialogBody>
+                    <div className={styles.btn}>
+                        <DialogActions>
+                            <Button size='small' onClick={ () => {
+                                setIsModalOpen(false); 
+                                navigate('/createmfa')
+                                setIsLoading(true); 
+                                }}
+                            >
+                            OK
+                        </Button>
+                        </DialogActions>
+                    </div>
+            </Dialog>
+            </div>
         )
     } 
 }

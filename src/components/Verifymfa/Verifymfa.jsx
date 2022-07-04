@@ -1,5 +1,5 @@
 // React
-import { useState, useEffect, useLayoutEffect } from "react"
+import { useState, useEffect } from "react"
 import { Button, Heading3, Spinner, TextField, Dialog, DialogTitle, DialogBody, DialogActions, Heading2, Heading4 } from '@vtfk/components'
 import { useSession } from "@vtfk/react-oidc"
 import { useNavigate } from 'react-router-dom'
@@ -11,7 +11,6 @@ import { checkUser, getSecret, getQrCode, verifyToken } from "../../utils/api"
 // Animations
 import AnimateError from "../AnimateError"
 import AnimateSuccess from "../AnimateSuccess"
-import { CheckMFAStatus } from "../../utils/checkMFAStatus"
 
 export default function VerifyMFA() {
     const { isAuthenticated } = useSession()
@@ -65,30 +64,28 @@ export default function VerifyMFA() {
                 const checkMFA = await checkUser(pid)
         
                 if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
-                    console.log('must verify')
+                    
                     navigate('/verifyMFA')
                 }
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.tempSecret && !checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD?.norEduPersonAuthnMethod) {
-                    console.log('User have no MFA, must create one.') 
+                    
                     navigate('/createmfa')
                 } 
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD?.norEduPersonAuthnMethod && !checkMFA.data.userMongo[0]?.tempSecret) {
-                    console.log('must recreate mfa, user not i mongo')
+                    
                     navigate('/createmfa')
                 } 
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
-                    console.log('User already have mfa, do you want to recreate?')
                     navigate('/verified') 
                 }
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
-                    console.log('recreate mfa')
                 }
                 else {
-                    console.log(checkMFA.status)
-                    console.log(checkMFA.data.userMongo[0]?.secret)
-                    console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
+                    // console.log(checkMFA.status)
+                    // console.log(checkMFA.data.userMongo[0]?.secret)
+                    // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
                 }
-                console.log(checkMFA)
+                // console.log(checkMFA)
                 setIsLoading(false)
             }
         }
@@ -143,7 +140,7 @@ export default function VerifyMFA() {
         }
     }, [stateChange, pid, mfaValidCheck])
 
-    if(isLoading) {
+    if(isLoading || qrCode.length === 0) {
         return ( 
             <div className={styles.qrCode}>
                 <Spinner size='medium' transparent />
@@ -151,8 +148,84 @@ export default function VerifyMFA() {
         )
     }
 
-    if(tokenData.length !== 0 && tokenData.data.verified === 'Verified') {
+    if(tokenData.length !== 0 && tokenData.data.verified === 'Not verified') {
         return(
+            <Dialog
+                isOpen={modalOpen}
+                persistent
+                draggable={false}
+                resizeable={false}
+                onDismiss={() => { setIsModalOpen(false)}}
+            >
+                <DialogTitle>
+                    <Heading2>Ikke vertifisert</Heading2>
+                </DialogTitle>
+                <DialogBody>
+                    <div className={styles.heading}>
+                        <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
+                    </div>
+                    <div className={styles.qrCode}>
+                        <AnimateError />
+                    </div>
+                </DialogBody>
+                <div className={styles.btn}>
+                    <DialogActions>
+                            <Button size='small' onClick={ () => {
+                                setIsModalOpen(false)
+                                setMfaValidCheck(false)
+                                window.location.reload() //Hacky, må fikses!
+                            }}
+                                >
+                                    OK
+                                </Button>
+                    </DialogActions>
+                </div>
+            </Dialog>
+        )
+    } else {
+        return (
+            <div className={styles.center}>
+                <div>
+                    <Heading3>
+                        Legg til din nøkkel ved å skanne QR-Koden eller skriv inn hemmeligheten som står under QR-Koden i din authentiserings applikasjon.
+                    </Heading3>
+                </div>
+                <div>
+                    <div className={styles.qrCode}>
+                        <img alt="qrcode" src={`data:image/jpeg;base64,${qrCode}`} />
+                    </div>
+                    <div className={styles.heading}>
+                        <Heading3>{secretCode}</Heading3>
+                    </div>
+                </div>
+                <div className={styles.TextField}>
+                    <TextField 
+                        placeholder='Eks: 123456' 
+                        type='number' 
+                        rounded hint='Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon.' 
+                        alwaysHint
+                        required
+                        onChange={(e) => setTokenInput(e.target.value)} 
+                    />
+                </div>
+                <div className={styles.heading}>
+                    <Heading3>
+                        Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon og trykk på valider. 
+                    </Heading3>
+                </div>
+                <div className={styles.btn}>
+                    <Button onClick={() => {
+                        setIsModalOpen(!modalOpen);
+                        setIsLoading(true) 
+                        setMfaValidCheck(true) 
+                        setStateChange(true);
+                        setIsLoading(false) 
+                        }} 
+                        disabled={!tokenInput}
+                        >
+                            Valider
+                    </Button>
+                </div>
             <Dialog
                 isOpen={modalOpen}
                 persistent
@@ -187,85 +260,6 @@ export default function VerifyMFA() {
                     </DialogActions>
                 </div>
             </Dialog>
-        )
-    } else if(tokenData.length !== 0 && tokenData.data.verified === 'Not verified'){
-        return(
-            <Dialog
-                isOpen={modalOpen}
-                persistent
-                draggable={false}
-                resizeable={false}
-                onDismiss={() => { setIsModalOpen(false)}}
-            >
-                <DialogTitle>
-                    <Heading2>Ikke vertifisert</Heading2>
-                </DialogTitle>
-                <DialogBody>
-                    <div className={styles.heading}>
-                        <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
-                    </div>
-                    <div className={styles.qrCode}>
-                        <AnimateError />
-                    </div>
-                </DialogBody>
-                <div className={styles.btn}>
-                    <DialogActions>
-                            <Button size='small' onClick={ () => {
-                                setIsModalOpen(false)
-                                setMfaValidCheck(false)
-                                navigate('/checkuser') //Hacky, må fikses!
-                            }}
-                                >
-                                    OK
-                                </Button>
-                    </DialogActions>
-                </div>
-            </Dialog>
-        )
-    } else {
-        return (
-            <div className={styles.center}>
-                <div>
-                    <Heading3>
-                        Legg til din nøkkel ved å skanne QR-Koden eller skriv inn hemmeligheten som står under QR-Koden i din authentiserings applikasjon.
-                    </Heading3>
-                </div>
-                <div>
-                    <div className={styles.qrCode}>
-                    <img alt="qrcode" src={`data:image/jpeg;base64,${qrCode}`} />
-                    </div>
-                    <div className={styles.heading}>
-                        <Heading3>{secretCode}</Heading3>
-                    </div>
-                </div>
-                <div className={styles.TextField}>
-                    <TextField 
-                        placeholder='Eks: 123456' 
-                        type='number' 
-                        rounded hint='Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon.' 
-                        alwaysHint
-                        required
-                        onChange={(e) => setTokenInput(e.target.value)} 
-                    />
-                </div>
-                <div className={styles.heading}>
-                    <Heading3>
-                        Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon og trykk på valider. 
-                    </Heading3>
-                </div>
-                <div className={styles.btn}>
-                    <Button onClick={() => {
-                        setIsLoading(true) 
-                        setIsModalOpen(!modalOpen); 
-                        setMfaValidCheck(true) 
-                        setStateChange(true);
-                        setIsLoading(false) 
-                        }} 
-                        disabled={!tokenInput}
-                        >
-                            Valider
-                    </Button>
-                </div>
             </div> 
         )
     }
