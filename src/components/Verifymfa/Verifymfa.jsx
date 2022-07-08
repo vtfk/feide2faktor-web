@@ -64,21 +64,19 @@ export default function VerifyMFA() {
                 const checkMFA = await checkUser(pid)
         
                 if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
-                    
                     navigate('/verifyMFA')
                 }
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.tempSecret && !checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD?.norEduPersonAuthnMethod) {
-                    
                     navigate('/createmfa')
                 } 
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD?.norEduPersonAuthnMethod && !checkMFA.data.userMongo[0]?.tempSecret) {
-                    
                     navigate('/createmfa')
                 } 
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
                     navigate('/verified') 
                 }
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
+                    navigate('/verified') 
                 }
                 else {
                     // console.log(checkMFA.status)
@@ -129,7 +127,7 @@ export default function VerifyMFA() {
             if(!didCancel && stateChange === true) {
                 setTokenData([])
                 const postVerifyToken = await verifyToken(tokenInput, pid)
-                setTokenData(postVerifyToken)
+                setTokenData(await postVerifyToken)
                 setIsLoading(false)
             }
         }
@@ -148,119 +146,117 @@ export default function VerifyMFA() {
         )
     }
 
-    if(tokenData.length !== 0 && tokenData.data.verified === 'Not verified') {
-        return(
-            <Dialog
-                isOpen={modalOpen}
-                persistent
-                draggable={false}
-                resizeable={false}
-                onDismiss={() => { setIsModalOpen(false)}}
-            >
-                <DialogTitle>
-                    <Heading2>Ikke vertifisert</Heading2>
-                </DialogTitle>
-                <DialogBody>
-                    <div className={styles.heading}>
-                        <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
-                    </div>
-                    <div className={styles.qrCode}>
-                        <AnimateError />
-                    </div>
-                </DialogBody>
-                <div className={styles.btn}>
-                    <DialogActions>
-                            <Button size='small' onClick={ () => {
-                                setIsModalOpen(false)
-                                setMfaValidCheck(false)
-                                window.location.reload() //Hacky, må fikses!
-                            }}
-                                >
-                                    OK
-                                </Button>
-                    </DialogActions>
-                </div>
-            </Dialog>
-        )
-    } else {
-        return (
-            <div className={styles.center}>
-                <div>
-                    <Heading3>
-                        Legg til din nøkkel ved å skanne QR-Koden eller skriv inn hemmeligheten som står under QR-Koden i din authentiserings applikasjon.
-                    </Heading3>
-                </div>
-                <div>
-                    <div className={styles.qrCode}>
-                        <img alt="qrcode" src={`data:image/jpeg;base64,${qrCode}`} />
-                    </div>
-                    <div className={styles.heading}>
-                        <Heading3>{secretCode}</Heading3>
-                    </div>
-                </div>
-                <div className={styles.TextField}>
-                    <TextField 
-                        placeholder='Eks: 123456' 
-                        type='number' 
-                        rounded hint='Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon.' 
-                        alwaysHint
-                        required
-                        onChange={(e) => setTokenInput(e.target.value)} 
-                    />
+    return (
+        <div className={styles.center}>
+            <div>
+                <Heading3>
+                    Legg til din nøkkel ved å skanne QR-Koden eller skriv inn hemmeligheten som står under QR-Koden i din authentiserings applikasjon.
+                </Heading3>
+            </div>
+            <div>
+                <div className={styles.qrCode}>
+                    <img alt="qrcode" src={`data:image/jpeg;base64,${qrCode}`} />
                 </div>
                 <div className={styles.heading}>
-                    <Heading3>
-                        Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon og trykk på valider. 
-                    </Heading3>
+                    <Heading3>{secretCode}</Heading3>
                 </div>
-                <div className={styles.btn}>
-                    <Button onClick={() => {
-                        setIsModalOpen(!modalOpen);
-                        setIsLoading(true) 
-                        setMfaValidCheck(true) 
-                        setStateChange(true);
-                        setIsLoading(false) 
-                        }} 
-                        disabled={!tokenInput}
-                        >
-                            Valider
+            </div>
+            <div className={styles.TextField}>
+                <TextField 
+                    placeholder='Eks: 123456' 
+                    type='number' 
+                    rounded hint='Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon.' 
+                    alwaysHint
+                    required
+                    onChange={(e) => setTokenInput(e.target.value)} 
+                />
+            </div>
+            <div className={styles.heading}>
+                <Heading3>
+                    Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon og trykk på valider. 
+                </Heading3>
+            </div>
+            <div className={styles.btn}>
+                <Button onClick={() => {
+                    setIsModalOpen(!modalOpen);
+                    setIsLoading(true) 
+                    setMfaValidCheck(true) 
+                    setStateChange(true);
+                    setIsLoading(false) 
+                    }} 
+                    disabled={!tokenInput}
+                    >
+                        Valider
+                </Button>
+            </div>
+            {/* && tokenData.data.verified === 'Verified' */}
+        <Dialog
+            isOpen={modalOpen && tokenData.length !== 0 && tokenData.data?.verified === 'Verified'}
+            persistent
+            draggable={false}
+            resizeable={false}
+            onDismiss={() => { 
+                setIsModalOpen(false)
+            }}
+        >
+            <DialogTitle>
+                <Heading2>
+                    Vertifisert    
+                </Heading2>
+            </DialogTitle>
+            <DialogBody>
+                <div className={styles.heading}>
+                    <Heading4>Du har nå aktivert og vertifisert MFA til din feidekonto</Heading4>
+                </div>
+                <div className={styles.qrCode}>
+                    <AnimateSuccess />
+                </div>   
+            </DialogBody>
+            <div className={styles.btn}>
+                <DialogActions>
+                    <Button size='small' onClick={ () => {
+                        setIsModalOpen(false)
+                        setTokenInput('')
+                        navigate('/verified')
+                        }}
+                    >
+                        OK
                     </Button>
+                </DialogActions>
+            </div>
+        </Dialog>
+        <Dialog
+            isOpen={modalOpen && tokenData.length !== 0 && tokenData.data?.verified === 'Not verified'}
+            persistent
+            draggable={false}
+            resizeable={false}
+            onDismiss={() => { setIsModalOpen(false)}}
+        >
+            <DialogTitle>
+                <Heading2>Ikke vertifisert</Heading2>
+            </DialogTitle>
+            <DialogBody>
+                <div className={styles.heading}>
+                    <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
                 </div>
-            <Dialog
-                isOpen={modalOpen}
-                persistent
-                draggable={false}
-                resizeable={false}
-                onDismiss={() => { 
-                    setIsModalOpen(false)
-                }}
-            >
-                <DialogTitle>
-                    <Heading2>
-                        Vertifisert    
-                    </Heading2>
-                </DialogTitle>
-                <DialogBody>
-                    <div className={styles.heading}>
-                        <Heading4>Du har nå aktivert og vertifisert MFA til din feidekonto</Heading4>
-                    </div>
-                    <div className={styles.qrCode}>
-                        <AnimateSuccess />
-                    </div>   
-                </DialogBody>
-                <div className={styles.btn}>
-                    <DialogActions>
+                <div className={styles.qrCode}>
+                    <AnimateError />
+                </div>
+            </DialogBody>
+            <div className={styles.btn}>
+                <DialogActions>
                         <Button size='small' onClick={ () => {
                             setIsModalOpen(false)
-                            navigate('/verified')
-                            }}
-                        >
-                            OK
-                        </Button>
-                    </DialogActions>
-                </div>
-            </Dialog>
-            </div> 
-        )
-    }
+                            setTokenInput('')
+                            setMfaValidCheck(false)
+                        }}
+                            >
+                                OK
+                            </Button>
+                </DialogActions>
+            </div>
+        </Dialog>
+    </div> 
+    )
 }
+

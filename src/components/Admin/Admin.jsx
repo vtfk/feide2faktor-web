@@ -9,7 +9,9 @@ export default function Admin() {
     return (
         <div className={styles.center}>
             <Heading2>
-                Oi, her gikk det vist veldig galt
+                Oi, her gikk det vist veldig galt.
+                <br/>
+                Prøv igjen senere. 
             </Heading2>
             <AnimateNotFound />
         </div>

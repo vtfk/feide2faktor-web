@@ -6,7 +6,10 @@ import { useNavigate } from 'react-router-dom'
 import styles from './styles.module.css'
 
 // API
-import { checkUser, postMFA, getName } from "../../utils/api"
+import { checkUser, postMFA} from "../../utils/api"
+
+//Queries
+import { Name } from "../../utils/queries"
 
 // Animations
 import AnimateError from "../AnimateError"
@@ -24,7 +27,6 @@ export default function CreateMFA() {
     const [userStatus, setUserStatus] = useState([])
     const [mfaCreated, setMfaCreated] = useState([])
     const [stateChange, setStateChange] = useState([])
-    const [userName, setUserName] = useState([])
     const [modalOpen, setIsModalOpen] = useState(false)
 
     // Check userstatus
@@ -78,6 +80,7 @@ export default function CreateMFA() {
                 }
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
                     // console.log('recreate mfa')
+                    navigate('/verified') 
                 }
                 else {
                     // console.log(checkMFA.status)
@@ -93,28 +96,10 @@ export default function CreateMFA() {
         return () => {
             didCancel = true
         }
-    }, [pid])
+    }, [])
 
-     // Get the username when pid value changes. 
-     useEffect(() => {
-        setIsLoading(true)
-        let didCancel = false
-        
-        async function getUserName() {
-            if(!didCancel) {
-                const userName = await getName(pid)
-                const data = await userName
-                
-                setUserName(data)
-                setIsLoading(false)
-            }
-        }
-
-        getUserName()
-        return () => {
-            didCancel = true
-        }
-    }, [pid])
+    //Get the users name
+    const name = Name(pid)
 
     // Create MFA
     useEffect(() => {
@@ -135,11 +120,15 @@ export default function CreateMFA() {
         }
     }, [stateChange, pid])
 
+    
+    
     // Handle the "Opprett MFA" button click
     const handleClick = () => {
         setStateChange(true)
         setIsModalOpen(true)
     }
+
+   
 
     if(isLoading) {
         return ( 
@@ -148,59 +137,26 @@ export default function CreateMFA() {
             </div>
         )
     }
+
     
-    if (mfaCreated.status !== 201 && stateChange === true) {
-        return(
+    return (
+        <div className={styles.center}>
+            <div className={styles.heading}>
+                <Heading2>Hei {name.data} </Heading2>
+            </div>
+            <div className={styles.heading}>
+                <Heading3>Du har ikke opprettet MFA til din feide konto, opprett MFA til din feidekonto ved å trykke på knappen under.</Heading3>
+            </div>
+            <div className={styles.btn}>
+                <Button onClick={() => {
+                        handleClick()
+                    }}
+                    >
+                        Opprett MFA
+                </Button>
+            </div>
             <Dialog
-                isOpen={modalOpen}
-                persistent
-                draggable={false}
-                resizeable={false}
-                onDismiss={() => { setIsModalOpen(false)}}
-            >
-                <DialogTitle>
-                    <Heading2>Ikke vertifisert</Heading2>
-                </DialogTitle>
-                <DialogBody>
-                    <div className={styles.heading}>
-                        <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
-                    </div>
-                    <div className={styles.qrCode}>
-                        <AnimateError />
-                    </div>
-                </DialogBody>
-                <div className={styles.btn}>
-                    <DialogActions>
-                            <Button size='small' onClick={ () => {
-                                setIsModalOpen(false)  
-                                setStateChange(false)
-                            }}
-                                >
-                                    OK
-                                </Button>
-                    </DialogActions>
-                </div>
-            </Dialog>
-        )
-    }else {
-        return (
-            <div className={styles.center}>
-                <div className={styles.heading}>
-                    <Heading2>Hei {userName} </Heading2>
-                </div>
-                <div className={styles.heading}>
-                    <Heading3>Du har ikke opprettet MFA til din feinde konto, opprett MFA til din feidekonto ved å trykke på knappen under.</Heading3>
-                </div>
-                <div className={styles.btn}>
-                    <Button onClick={() => {
-                        handleClick() 
-                        }}
-                        >
-                            Opprett MFA
-                    </Button>
-                </div>
-                <Dialog
-                isOpen={modalOpen}
+                isOpen={modalOpen && mfaCreated.status === 201 && stateChange === true}
                 persistent
                 draggable={false}
                 resizeable={false}
@@ -233,7 +189,37 @@ export default function CreateMFA() {
                     </DialogActions>
                 </div>
             </Dialog>
-            </div>
-        )
-    }
+            <Dialog
+                isOpen={modalOpen && mfaCreated.status !== 201 && stateChange === true}
+                persistent
+                draggable={false}
+                resizeable={false}
+                onDismiss={() => { setIsModalOpen(false)}}
+            >
+                <DialogTitle>
+                    <Heading2>Ikke vertifisert</Heading2>
+                </DialogTitle>
+                <DialogBody>
+                    <div className={styles.heading}>
+                        <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
+                    </div>
+                    <div className={styles.qrCode}>
+                        <AnimateError />
+                    </div>
+                </DialogBody>
+                <div className={styles.btn}>
+                    <DialogActions>
+                            <Button size='small' onClick={ () => {
+                                setIsModalOpen(false)  
+                                setStateChange(false)
+                            }}
+                                >
+                                    OK
+                                </Button>
+                    </DialogActions>
+                </div>
+            </Dialog>
+        </div>        
+    )
 }
+
