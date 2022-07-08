@@ -59,6 +59,7 @@ export default function CheckUser() {
                             navigate('/verified') 
                         }
                         else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
+                            navigate('/verified') 
                         }
                         else {
                             // console.log(checkMFA.status)

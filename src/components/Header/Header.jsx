@@ -1,23 +1,25 @@
-import { Heading2, IconDropdownNavItem, TopBar } from "@vtfk/components";
+import { Heading2, IconDropdownNavItem, TopBar, Skeleton } from "@vtfk/components";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@vtfk/react-oidc";
 import { useState, useEffect } from "react"
 import styles from './styles.module.css'
 import vtfkLogo from '../../assets/VTFK.svg'
 
-// API
-import { getName } from "../../utils/api";
+//Queries
+import { Name } from "../../utils/queries";
 
 export default function Header() {
     const navigate = useNavigate()
+
     const { logout, isAuthenticated } = useSession()
     
     const [showTopBar, setShowTopBar] = useState(false)
-    const [userName, setUserName] = useState([])
 
     let displayName = ''
     let firstName = ''
     let lastName = ''
+
+    let pid = ''
 
     useEffect(() => {
         if(isAuthenticated){
@@ -25,36 +27,52 @@ export default function Header() {
         }
     }, [isAuthenticated])
 
-
-    useEffect(() => {
-        let didCancel = false
-
-        async function userNameRequest() {
-            if(!didCancel) {
-                if(isAuthenticated) {
-                    const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
-                    const userName = await getName(pid)
-                    setUserName(userName)
-                }
+    function nameLetter(fullName) {
+        const letters = fullName.match(/\b(\w)/g)
+        return letters
+    }
+    const IDPortenAUTH = window.sessionStorage.getItem('IDPorten-AUTH')
+    if(isAuthenticated) {
+        if(IDPortenAUTH !== undefined) {
+            const pidCheck = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
+            if(pidCheck !== undefined) {
+                pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
             }
         }
-
-        userNameRequest()
-
-        displayName = 'Feide'
-        firstName = 'Feide'
-
-        return () => {
-            didCancel = true
-        }
-    }, [isAuthenticated])
-
-
-    if(userName.length !== 0) {
-        displayName = userName
-        firstName = userName[0]
     }
 
+    const results = Name(pid)
+    if(results.isLoading && pid !== '') {
+        return (
+            <div className={styles.header}>
+                <div className={styles.logoText}>
+                        <img src={vtfkLogo} alt="vtfkLogo" height={60}></img>
+                        <Heading2 className={styles.text}>
+                            Feide MFA
+                        </Heading2>
+                    <TopBar 
+                        displayName={<Skeleton variant='text'  width={100} height={20}/>}
+                        firstName={firstName}
+                        lastName={lastName}
+                        className={styles.topBar}
+                    />
+                </div>
+            </div>
+        )
+    }
+
+    if(results.isError) {
+        return <span>Error: {results.error}</span>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+    }
+
+    if(results.data) {
+        const letters = nameLetter(results.data)
+
+        displayName = results.data
+        firstName = letters[0]
+        lastName = letters[1]
+    }
+    
     return(
         <div className={styles.header}>
             <div className={styles.logoText}>

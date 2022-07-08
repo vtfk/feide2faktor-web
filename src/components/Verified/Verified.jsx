@@ -26,6 +26,7 @@ export default function Verified() {
     const [userName, setUserName] = useState([])
     const [deleteData, setDeleteData] = useState([])
     const [deleteState, setDeleteState] = useState([])
+    const [checkedUser, setCheckedUSer] = useState({})
 
     // Check userstatus
     useEffect (() => {
@@ -50,7 +51,7 @@ export default function Verified() {
         }
     })
 
-    // Check the mfa status of the user and redirect to the correct step. 
+    // Check the mfa status of the user and redirect to the correct step.
     useEffect(() => {
         setIsLoading(true)
         let didCancel = false
@@ -59,6 +60,7 @@ export default function Verified() {
             if(!didCancel) {
                 // Get data from the mongoDB
                 const checkMFA = await checkUser(pid)
+                setCheckedUSer(await checkMFA)
         
                 if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
                     navigate('/verifyMFA')
@@ -72,14 +74,15 @@ export default function Verified() {
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {    
                     navigate('/verified') 
                 }
-                else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {    
+                else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
+                    navigate('/verified')     
                 }
                 else {
                     // console.log(checkMFA.status)
                     // console.log(checkMFA.data.userMongo[0]?.secret)
                     // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
                 }
-                // console.log(checkMFA)
+                // console.log(checkedUser)
                 setIsLoading(false)
             }
         }
@@ -140,39 +143,93 @@ export default function Verified() {
             </div>
         )
     }
-    
-    if(deleteData.status === 400 || deleteData.status === 404) {
-        return(
-            <Dialog
-                isOpen={modalOpen}
-                persistent
-                draggable={false}
-                resizeable={false}
-                onDismiss={() => { setIsModalOpen(false)}}
-            >
-                <DialogTitle>
-                    <Heading2>Error</Heading2>
-                </DialogTitle>
-                <DialogBody>
-                    <div className={styles.heading}>
-                        <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
-                    </div>
-                    <div className={styles.qrCode}>
-                        <AnimateError />
-                    </div>
-                </DialogBody>
-                <div className={styles.btn}>
-                    <DialogActions>
-                            <Button size='small' onClick={ () => {
-                                setIsModalOpen(false)
-                                window.location.reload() //Hacky, må fikses!
-                            }}
-                                >
-                                    OK
-                                </Button>
-                    </DialogActions>
+    if((checkedUser.data?.userMongo[0]?.secret && !checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod) || (!checkedUser.data?.userMongo[0]?.secret && checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod)) {
+        return (
+            <div className={styles.center}>
+                <div className={styles.heading}>
+                    <Heading2>Hei {userName} </Heading2>
                 </div>
-            </Dialog>
+                <div className={styles.heading}>
+                    <Heading3>
+                        Det ser ut som du allerede har aktivert feide MFA til din feide konto, men noe er galt. 
+                        <br/>Tilbakestill din MFA og opprett en ny ved å trykke på knappen under. 
+                    </Heading3>
+                </div>    
+                <div className={styles.btn}>
+                    <Button onClick={() => { 
+                        if(window.confirm('Du vil nå tilbakestille din eksisterende MFA, du vil ikke ha ny MFA før du oppretter en ny og validerer denne!')) {   
+                            setDeleteState(true)
+                        }
+                        
+                    }}
+                    >
+                        Tilbakestill MFA
+                    </Button>
+                </div>
+                <Dialog
+                    isOpen={modalOpen && deleteData.status === 200}
+                    persistent
+                    draggable={false}
+                    resizeable={false}
+                    onDismiss={() => { setIsModalOpen(false)}}
+                >
+                    <DialogTitle>
+                        <Heading2>
+                        Tilbakestill MFA
+                        </Heading2>
+                    </DialogTitle>
+                    <DialogBody>
+                        <div className={styles.heading}>
+                            <Heading4>MFA er tilbakestilt</Heading4>
+                        </div>
+                        <div className={styles.qrCode}>
+                            <AnimateSuccess />
+                        </div>
+                    </DialogBody>
+                    <div className={styles.btn}>
+                        <DialogActions>
+                            <Button size='small' onClick={ () => {
+                                setIsModalOpen(false); 
+                                navigate('/createmfa')
+                                setIsLoading(true); 
+                                }}
+                            >
+                            OK
+                        </Button>
+                        </DialogActions>
+                    </div>
+                </Dialog>
+                <Dialog
+                    isOpen={modalOpen && (deleteData.status === 400 || deleteData.status === 404)}
+                    persistent
+                    draggable={false}
+                    resizeable={false}
+                    onDismiss={() => { setIsModalOpen(false)}}
+                >
+                    <DialogTitle>
+                        <Heading2>Error</Heading2>
+                    </DialogTitle>
+                    <DialogBody>
+                        <div className={styles.heading}>
+                            <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
+                        </div>
+                        <div className={styles.qrCode}>
+                            <AnimateError />
+                        </div>
+                    </DialogBody>
+                    <div className={styles.btn}>
+                        <DialogActions>
+                                <Button size='small' onClick={ () => {
+                                    setIsModalOpen(false)
+                                    window.location.reload() //Hacky, må fikses!
+                                }}
+                                    >
+                                        OK
+                                    </Button>
+                        </DialogActions>
+                    </div>
+                </Dialog>
+            </div>
         )
     } else {
         return (
@@ -197,7 +254,7 @@ export default function Verified() {
                     </Button>
                 </div>
                 <Dialog
-                    isOpen={modalOpen}
+                    isOpen={modalOpen && deleteData.status === 200}
                     persistent
                     draggable={false}
                     resizeable={false}
@@ -228,8 +285,39 @@ export default function Verified() {
                         </Button>
                         </DialogActions>
                     </div>
-            </Dialog>
+                </Dialog>
+                <Dialog
+                    isOpen={modalOpen && (deleteData.status === 400 || deleteData.status === 404)}
+                    persistent
+                    draggable={false}
+                    resizeable={false}
+                    onDismiss={() => { setIsModalOpen(false)}}
+                >
+                    <DialogTitle>
+                        <Heading2>Error</Heading2>
+                    </DialogTitle>
+                    <DialogBody>
+                        <div className={styles.heading}>
+                            <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
+                        </div>
+                        <div className={styles.qrCode}>
+                            <AnimateError />
+                        </div>
+                    </DialogBody>
+                    <div className={styles.btn}>
+                        <DialogActions>
+                                <Button size='small' onClick={ () => {
+                                    setIsModalOpen(false)
+                                    window.location.reload() //Hacky, må fikses!
+                                }}
+                                    >
+                                        OK
+                                    </Button>
+                        </DialogActions>
+                    </div>
+                </Dialog>
             </div>
         )
-    } 
-}
+    }
+    
+} 
