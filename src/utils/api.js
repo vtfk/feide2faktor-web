@@ -1,9 +1,11 @@
 import axios from "axios"
 const baseURL = process.env.REACT_APP_API_URL
 const key = process.env.REACT_APP_API_KEY_AZF
+const ocpApimSubKey = process.env.REACT_APP_OCP_APIM_SUBSCRIPTION_KEY
 
 const headersBody = {
-    'x-api-key': key
+    'x-api-key': key,
+    'Ocp-Apim-Subscription-Key': ocpApimSubKey
 }
 
 
@@ -86,22 +88,28 @@ export async function deleteMFA(pid) {
 }
 
 export async function getName(pid) {
-    const mail = await axios.get(`${baseURL}checkuser/${pid}`, {headers: headersBody}).then(res => res.data.userAzureAD.mail).catch((error) => {
-        if(error.res) {
-            return error.res
-        } else if(error.request) {
-            return error.request
-        } else {
-            return ('Error:', error.message )
+    console.log(pid)
+    if(pid === undefined) {
+        return undefined
+    } else {
+        const mail = await axios.get(`${baseURL}checkuser/${pid}`, {headers: headersBody}).then(res => res.data.userAzureAD.mail).catch((error) => {
+            console.log(mail)
+            if(error.res) {
+                return error.res
+            } else if(error.request) {
+                return error.request
+            } else {
+                return ('Error:', error.message )
+            }
+        })
+        
+        let name = mail.substring(0, mail.indexOf('@'))
+        name = name.replace('.', ' ')
+    
+        let splitName = name.toLowerCase().split(' ');
+        for (let i = 0; i < splitName.length; i++) {
+            splitName[i] = splitName[i].charAt(0).toUpperCase() + splitName[i].substring(1);     
         }
-    })
-
-    let name = mail.substring(0, mail.indexOf('@'))
-    name = name.replace('.', ' ')
-
-    let splitName = name.toLowerCase().split(' ');
-    for (let i = 0; i < splitName.length; i++) {
-        splitName[i] = splitName[i].charAt(0).toUpperCase() + splitName[i].substring(1);     
-    }
-   return splitName.join(' '); 
+       return splitName.join(' ');
+    } 
 }

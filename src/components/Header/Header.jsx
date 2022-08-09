@@ -42,6 +42,7 @@ export default function Header() {
     }
 
     const results = Name(pid)
+    
     if(results.isLoading && pid !== '') {
         return (
             <div className={styles.header}>
@@ -72,7 +73,7 @@ export default function Header() {
         firstName = letters[0]
         lastName = letters[1]
     }
-    
+
     return(
         <div className={styles.header}>
             <div className={styles.logoText}>
@@ -93,4 +94,5 @@ export default function Header() {
             </TopBar>}
         </div> 
     )
+    
 }
