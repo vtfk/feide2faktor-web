@@ -88,7 +88,6 @@ export async function deleteMFA(pid) {
 }
 
 export async function getName(pid) {
-    console.log(pid)
     if(pid === undefined) {
         return undefined
     } else {
