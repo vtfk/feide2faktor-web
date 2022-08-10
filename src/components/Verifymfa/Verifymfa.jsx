@@ -21,6 +21,7 @@ export default function VerifyMFA() {
 
     // States
     const [isLoading, setIsLoading] = useState(true)
+    const [isButtonLoading, setIsButtonLoading] = useState(false)
     const [userStatus, setUserStatus] = useState([])
     const [qrCode, setQrCode] = useState([])
     const [secretCode, setSecretCode] = useState([])
@@ -84,6 +85,7 @@ export default function VerifyMFA() {
                     // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
                 }
                 // console.log(checkMFA)
+                setIsButtonLoading(false)
                 setIsLoading(false)
             }
         }
@@ -120,7 +122,7 @@ export default function VerifyMFA() {
 
     // Try to verify the token input
     useEffect(() => {
-        setIsLoading(true)
+        setIsButtonLoading(true)
         let didCancel = false
 
         async function verifyMFA() {
@@ -128,7 +130,7 @@ export default function VerifyMFA() {
                 setTokenData([])
                 const postVerifyToken = await verifyToken(tokenInput, pid)
                 setTokenData(await postVerifyToken)
-                setIsLoading(false)
+                setIsButtonLoading(false)
             }
         }
 
@@ -177,17 +179,15 @@ export default function VerifyMFA() {
                 </Heading3>
             </div>
             <div className={styles.btn}>
-                <Button onClick={() => {
+                {isButtonLoading ? (<Button spinner> Valider</Button>) : (<Button onClick={() => {
                     setIsModalOpen(!modalOpen);
-                    setIsLoading(true) 
                     setMfaValidCheck(true) 
                     setStateChange(true);
-                    setIsLoading(false) 
                     }} 
-                    disabled={!tokenInput}
+                    disabled={tokenInput.length < 6}
                     >
                         Valider
-                </Button>
+                </Button>)}
             </div>
             {/* && tokenData.data.verified === 'Verified' */}
         <Dialog

@@ -3,13 +3,17 @@ const baseURL = process.env.REACT_APP_API_URL
 const key = process.env.REACT_APP_API_KEY_AZF
 const ocpApimSubKey = process.env.REACT_APP_OCP_APIM_SUBSCRIPTION_KEY
 
+// Ditt personlige fnr. Da det ikke er mulig å lage reele test personer til ViS må du bruke deg selv eller noen du kjenner som test person. 
+// NB! Du vil slette og opprete 2 faktor til feide ved å bruke ditt fnr i denne applikasjonen om du har en feide bruker.
+const personalPidTestValue = process.env.REACT_APP_PERSONAL_PID_TEST_VALUE
+
 const headersBody = {
     'x-api-key': key,
     'Ocp-Apim-Subscription-Key': ocpApimSubKey
 }
 
-
 export async function checkUser(pid) {
+    pid = personalPidTestValue
     return await axios.get(`${baseURL}checkuser/${pid}`, {headers: headersBody}).then(res => res).catch((error) => {
         if(error.res) {
             return error.res
@@ -22,6 +26,7 @@ export async function checkUser(pid) {
 }
 
 export async function getQrCode(pid) {
+    pid = personalPidTestValue
     return await axios.get(`${baseURL}qrcode/${pid}`, {headers: headersBody}).then(res => res).catch((error) => {
         if(error.res) {
             return error.res
@@ -34,6 +39,7 @@ export async function getQrCode(pid) {
 }
 
 export async function getSecret(pid) {
+    pid = personalPidTestValue
     return await axios.get(`${baseURL}secret2faktor/${pid}`, {headers:headersBody}).then(res => res).catch((error) => {
         if(error.res) {
             return error.res
@@ -46,6 +52,7 @@ export async function getSecret(pid) {
 }
 
 export async function postMFA(pid) {
+    pid = personalPidTestValue
     let mfaBody = {
         userID: pid
     }
@@ -61,6 +68,7 @@ export async function postMFA(pid) {
 }
 
 export async function verifyToken(token, pid) {
+    pid = personalPidTestValue
     let tokenBody = {
         token: token
     }
@@ -76,6 +84,7 @@ export async function verifyToken(token, pid) {
 }
 
 export async function deleteMFA(pid) {
+    pid = personalPidTestValue
     return await axios.delete(`${baseURL}delete/${pid}`, {headers:headersBody}).then(res => res).catch((error) => {
         if(error.res) {
             return error.res
@@ -88,6 +97,7 @@ export async function deleteMFA(pid) {
 }
 
 export async function getName(pid) {
+    pid = personalPidTestValue
     if(pid === undefined) {
         return undefined
     } else {

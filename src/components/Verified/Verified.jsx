@@ -21,6 +21,7 @@ export default function Verified() {
 
     // States
     const [isLoading, setIsLoading] = useState(true)
+    const [isButtonLoading, setIsButtonLoading] = useState(false)
     const [userStatus, setUserStatus] = useState([])
     const [modalOpen, setIsModalOpen] = useState(false)
     const [userName, setUserName] = useState([])
@@ -83,6 +84,7 @@ export default function Verified() {
                     // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
                 }
                 // console.log(checkedUser)
+                setIsButtonLoading(false)
                 setIsLoading(false)
             }
         }
@@ -107,7 +109,6 @@ export default function Verified() {
                 setIsLoading(false)
             }
         }
-
         getUserName()
         return () => {
             didCancel = true
@@ -116,7 +117,7 @@ export default function Verified() {
 
     // Delete the current mfa
     useEffect(() => {
-        setIsLoading(true)
+        setIsButtonLoading(true)
         let didCancel = false
 
         async function deleteMFARequest() {
@@ -126,7 +127,7 @@ export default function Verified() {
 
                 setDeleteData(data)
                 setIsModalOpen(true)
-                setIsLoading(false)
+                setIsButtonLoading(false)
             }
         }
 
@@ -156,7 +157,7 @@ export default function Verified() {
                     </Heading3>
                 </div>    
                 <div className={styles.btn}>
-                    <Button onClick={() => { 
+                    {isButtonLoading ? (<Button spinner>Tilbakestill MFA</Button>) : (<Button onClick={() => { 
                         if(window.confirm('Du vil nå tilbakestille din eksisterende MFA, du vil ikke ha ny MFA før du oppretter en ny og validerer denne!')) {   
                             setDeleteState(true)
                         }
@@ -164,7 +165,7 @@ export default function Verified() {
                     }}
                     >
                         Tilbakestill MFA
-                    </Button>
+                    </Button>)}
                 </div>
                 <Dialog
                     isOpen={modalOpen && deleteData.status === 200}
@@ -225,7 +226,7 @@ export default function Verified() {
                                 }}
                                     >
                                         OK
-                                    </Button>
+                                </Button>
                         </DialogActions>
                     </div>
                 </Dialog>
@@ -243,7 +244,7 @@ export default function Verified() {
                     </Heading3>
                 </div>    
                 <div className={styles.btn}>
-                    <Button onClick={() => { 
+                    {isButtonLoading ? (<Button spinner> Opprett ny MFA</Button>) : (<Button onClick={() => { 
                         if(window.confirm('Du vil nå slette din eksisterende MFA, du vil ikke ha ny MFA før du oppretter en ny og validerer denne!')) {   
                             setDeleteState(true)
                         }
@@ -251,7 +252,7 @@ export default function Verified() {
                     }}
                     >
                         Opprett ny MFA
-                    </Button>
+                    </Button>)}
                 </div>
                 <Dialog
                     isOpen={modalOpen && deleteData.status === 200}

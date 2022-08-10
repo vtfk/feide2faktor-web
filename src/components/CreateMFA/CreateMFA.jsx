@@ -24,6 +24,7 @@ export default function CreateMFA() {
 
     // States
     const [isLoading, setIsLoading] = useState(true)
+    const [isButtonLoading, setIsButtonLoading] = useState(false)
     const [userStatus, setUserStatus] = useState([])
     const [mfaCreated, setMfaCreated] = useState([])
     const [stateChange, setStateChange] = useState([])
@@ -89,6 +90,7 @@ export default function CreateMFA() {
                 }
                 // console.log(checkMFA)
                 setIsLoading(false)
+                setIsButtonLoading(false)
             }
         }
 
@@ -103,7 +105,7 @@ export default function CreateMFA() {
 
     // Create MFA
     useEffect(() => {
-        setIsLoading(true)
+        setIsButtonLoading(true)
         let didCancel = false
 
         async function createMFA() {
@@ -111,7 +113,7 @@ export default function CreateMFA() {
                 const postMFAData = await postMFA(pid)
                 const data = await postMFAData
                 setMfaCreated(data)
-                setIsLoading(false)
+                setIsButtonLoading(false)
             }
         }
         createMFA()
@@ -148,12 +150,14 @@ export default function CreateMFA() {
                 <Heading3>Du har ikke opprettet MFA til din feide konto, opprett MFA til din feidekonto ved å trykke på knappen under.</Heading3>
             </div>
             <div className={styles.btn}>
-                <Button onClick={() => {
+                {isButtonLoading ? (<Button spinner> Opprett MFA</Button>) : (
+                    <Button onClick={() => {
                         handleClick()
                     }}
                     >
                         Opprett MFA
                 </Button>
+                )}
             </div>
             <Dialog
                 isOpen={modalOpen && mfaCreated.status === 201 && stateChange === true}
@@ -190,7 +194,7 @@ export default function CreateMFA() {
                 </div>
             </Dialog>
             <Dialog
-                isOpen={modalOpen && mfaCreated.status !== 201 && stateChange === true}
+                isOpen={modalOpen && mfaCreated.status !== 201 && stateChange === true && isButtonLoading === false}
                 persistent
                 draggable={false}
                 resizeable={false}
