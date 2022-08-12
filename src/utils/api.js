@@ -10,7 +10,6 @@ const personalPidTestValue = process.env.REACT_APP_PERSONAL_PID_TEST_VALUE
 const headersBody = {
     'x-api-key': key,
     'Ocp-Apim-Subscription-Key': ocpApimSubKey,
-    
 }
 
 // Get the user information from mongodb(if exist) and from azureAD by passing username(per1234) or fnr/pid(12345678910)
