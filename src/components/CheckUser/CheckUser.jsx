@@ -17,6 +17,7 @@ export default function CheckUser() {
 
     // const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
     const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')
+    console.log(pid)
 
     const fetchData = async () => {
         const checkUserRequest = await checkUser(pid)
