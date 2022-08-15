@@ -15,15 +15,7 @@ export default function CheckUser() {
     const [user, setUser] = useState([])
     const [isLoading, setIsLoading] = useState(true)
 
-    // const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
-    console.log('........')
-    console.log('pid pos4')
-    const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[4]
-    console.log(pid)
-    console.log('........')
-    console.log('pid pos3')
-    const pid1 = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
-    console.log(pid1)
+    const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
 
     const fetchData = async () => {
         const checkUserRequest = await checkUser(pid)
