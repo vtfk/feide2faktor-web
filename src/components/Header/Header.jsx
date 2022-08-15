@@ -40,12 +40,9 @@ export default function Header() {
             }
         }
     }
-
-    console.log(pid)
-    const results = Name(pid)
     
+    const results = Name(pid)
     if(results.isLoading && pid !== '') {
-        console.log("hi")
         return (
             <div className={styles.header}>
                 <div className={styles.logoText}>

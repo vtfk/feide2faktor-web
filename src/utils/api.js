@@ -126,23 +126,27 @@ export async function getName(pid) {
     if(personalPidTestValue !== undefined) {
         pid = personalPidTestValue
     }
-    // Get the mailadress
-    const mail = await axios.get(`${baseURL}checkuser/${pid}`, {headers: headersBody}).then(res => res.data.userAzureAD.mail).catch((error) => {
-        if(error.res) {
-            return error.res
-        } else if(error.request) {
-            return error.request
-        } else {
-            return ('Error:', error.message )
+    if(pid === undefined) {
+        return undefined
+    } else {
+        // Get the mailadress
+        const mail = await axios.get(`${baseURL}checkuser/${pid}`, {headers: headersBody}).then(res => res.data.userAzureAD.mail).catch((error) => {
+            if(error.res) {
+                return error.res
+            } else if(error.request) {
+                return error.request
+            } else {
+                return ('Error:', error.message )
+            }
+        })
+        // Get the name from the mailadress and return the name
+        let name = mail.substring(0, mail.indexOf('@'))
+        name = name.replace('.', ' ')
+    
+        let splitName = name.toLowerCase().split(' ');
+        for (let i = 0; i < splitName.length; i++) {
+            splitName[i] = splitName[i].charAt(0).toUpperCase() + splitName[i].substring(1);     
         }
-    })
-    // Get the name from the mailadress and return the name
-    let name = mail.substring(0, mail.indexOf('@'))
-    name = name.replace('.', ' ')
-
-    let splitName = name.toLowerCase().split(' ');
-    for (let i = 0; i < splitName.length; i++) {
-        splitName[i] = splitName[i].charAt(0).toUpperCase() + splitName[i].substring(1);     
-    }
-    return splitName.join(' ');
+       return splitName.join(' ');
+    } 
 }
