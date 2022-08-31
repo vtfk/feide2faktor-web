@@ -48,7 +48,7 @@ export default function Header() {
                 <div className={styles.logoText}>
                         <img src={vtfkLogo} alt="vtfkLogo" height={60}></img>
                         <Heading2 className={styles.text}>
-                            Feide MFA
+                            Selvbetjeningsportal
                         </Heading2>
                     <TopBar 
                         displayName={<Skeleton variant='text'  width={100} height={20}/>}
@@ -78,7 +78,7 @@ export default function Header() {
             <div className={styles.logoText}>
                 <img src={vtfkLogo} alt="vtfkLogo" height={60}></img>
                 <Heading2 className={styles.text}>
-                    Feide MFA
+                    Selvbetjeningsportal
                 </Heading2>
             </div>
             {showTopBar && <TopBar
@@ -89,7 +89,7 @@ export default function Header() {
                 >
                     <IconDropdownNavItem closeOnClick title='Hjem' onClick={ () => navigate('/signedin') }/>
                     {isAuthenticated && <IconDropdownNavItem closeOnClick title='Logg ut' onClick={ logout } />}
-                    <IconDropdownNavItem closeOnClick title='Admin' onClick={ () => navigate('/admin') }/>
+                    {/* <IconDropdownNavItem closeOnClick title='Admin' onClick={ () => navigate('/admin') }/> */}
             </TopBar>}
         </div> 
     )

@@ -1,16 +1,13 @@
 // React
 import { useState, useEffect } from "react"
-import { Button, Heading3, Spinner, Dialog, DialogTitle, DialogBody, DialogActions, Heading2, Heading4 } from '@vtfk/components'
+import { Button, Heading3, Spinner, Heading2 } from '@vtfk/components'
 import { useSession } from "@vtfk/react-oidc"
 import { useNavigate } from 'react-router-dom'
 import styles from './styles.module.css'
+import BasicSnackbar from "../../utils/BasicSnackbar"
 
 // API
 import { checkUser, deleteMFA, getName } from "../../utils/api"
-
-// Animations
-import AnimateError from "../AnimateError"
-import AnimateSuccess from "../AnimateSuccess"
 
 export default function Verified() {
     const { isAuthenticated } = useSession()
@@ -23,11 +20,11 @@ export default function Verified() {
     const [isLoading, setIsLoading] = useState(true)
     const [isButtonLoading, setIsButtonLoading] = useState(false)
     const [userStatus, setUserStatus] = useState([])
-    const [modalOpen, setIsModalOpen] = useState(false)
     const [userName, setUserName] = useState([])
     const [deleteData, setDeleteData] = useState([])
     const [deleteState, setDeleteState] = useState([])
     const [checkedUser, setCheckedUSer] = useState({})
+    const [snackOpen, setSnackOpen] = useState(false)
 
     // Check userstatus
     useEffect (() => {
@@ -78,12 +75,6 @@ export default function Verified() {
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
                     navigate('/verified')     
                 }
-                else {
-                    // console.log(checkMFA.status)
-                    // console.log(checkMFA.data.userMongo[0]?.secret)
-                    // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
-                }
-                // console.log(checkedUser)
                 setIsButtonLoading(false)
                 setIsLoading(false)
             }
@@ -115,9 +106,25 @@ export default function Verified() {
         }
     }, [pid])
 
+    const handleClose = (event, reason) => {
+        setIsButtonLoading(false)
+        if(reason === 'clickaway') {
+            return
+        }
+        if(deleteData.status === 200) {
+            setSnackOpen(false)
+            navigate('/verifyMFA')
+        }
+        if((deleteData.status === 400 || deleteData.status === 404) && isButtonLoading === false) {
+            setSnackOpen(false)
+        }
+    }
+
     // Delete the current mfa
     useEffect(() => {
-        setIsButtonLoading(true)
+        if(deleteState === true) {
+            setIsButtonLoading(true)
+        }
         let didCancel = false
 
         async function deleteMFARequest() {
@@ -126,7 +133,7 @@ export default function Verified() {
                 const data = await deleteMFAData
 
                 setDeleteData(data)
-                setIsModalOpen(true)
+                // setIsModalOpen(true)
                 setIsButtonLoading(false)
             }
         }
@@ -139,8 +146,13 @@ export default function Verified() {
 
     if(isLoading) {
         return ( 
-            <div className={styles.qrCode}>
-                <Spinner size='medium' transparent />
+            <div className={styles.center}>
+                <div className={styles.heading}>
+                    <Heading3>Sjekker din tofaktor status, venligst vent</Heading3>
+                </div>
+                <div className={styles.qrCode}>
+                    <Spinner size='medium' transparent />
+                </div>
             </div>
         )
     }
@@ -152,84 +164,34 @@ export default function Verified() {
                 </div>
                 <div className={styles.heading}>
                     <Heading3>
-                        Det ser ut som du allerede har aktivert feide MFA til din feide konto, men noe er galt. 
-                        <br/>Tilbakestill din MFA og opprett en ny ved å trykke på knappen under. 
+                        Det ser ut som du allerede har aktivert tofaktor til din konto, men noe er galt. 
+                        <br/>Tilbakestill din tofaktor og opprett en ny ved å trykke på knappen under. 
                     </Heading3>
                 </div>    
                 <div className={styles.btn}>
-                    {isButtonLoading ? (<Button spinner>Tilbakestill MFA</Button>) : (<Button onClick={() => { 
-                        if(window.confirm('Du vil nå tilbakestille din eksisterende MFA, du vil ikke ha ny MFA før du oppretter en ny og validerer denne!')) {   
-                            setDeleteState(true)
-                        }
-                        
+                    {isButtonLoading ? (<Button spinner>Tilbakestill Tofaktor</Button>) : (<Button onClick={() => { 
+                        setDeleteState(true)
+                        setSnackOpen(true)
                     }}
+                    disabled={snackOpen}
                     >
-                        Tilbakestill MFA
+                        Tilbakestill Tofaktor
                     </Button>)}
                 </div>
-                <Dialog
-                    isOpen={modalOpen && deleteData.status === 200}
-                    persistent
-                    draggable={false}
-                    resizeable={false}
-                    onDismiss={() => { setIsModalOpen(false)}}
-                >
-                    <DialogTitle>
-                        <Heading2>
-                        Tilbakestill MFA
-                        </Heading2>
-                    </DialogTitle>
-                    <DialogBody>
-                        <div className={styles.heading}>
-                            <Heading4>MFA er tilbakestilt</Heading4>
-                        </div>
-                        <div className={styles.qrCode}>
-                            <AnimateSuccess />
-                        </div>
-                    </DialogBody>
-                    <div className={styles.btn}>
-                        <DialogActions>
-                            <Button size='small' onClick={ () => {
-                                setIsModalOpen(false); 
-                                navigate('/createmfa')
-                                setIsLoading(true); 
-                                }}
-                            >
-                            OK
-                        </Button>
-                        </DialogActions>
-                    </div>
-                </Dialog>
-                <Dialog
-                    isOpen={modalOpen && (deleteData.status === 400 || deleteData.status === 404)}
-                    persistent
-                    draggable={false}
-                    resizeable={false}
-                    onDismiss={() => { setIsModalOpen(false)}}
-                >
-                    <DialogTitle>
-                        <Heading2>Error</Heading2>
-                    </DialogTitle>
-                    <DialogBody>
-                        <div className={styles.heading}>
-                            <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
-                        </div>
-                        <div className={styles.qrCode}>
-                            <AnimateError />
-                        </div>
-                    </DialogBody>
-                    <div className={styles.btn}>
-                        <DialogActions>
-                                <Button size='small' onClick={ () => {
-                                    setIsModalOpen(false)
-                                    window.location.reload() //Hacky, må fikses!
-                                }}
-                                    >
-                                        OK
-                                </Button>
-                        </DialogActions>
-                    </div>
-                </Dialog>
+                <BasicSnackbar 
+                    open={snackOpen && deleteData.status === 200 && isButtonLoading === false}
+                    onClose={handleClose}
+                    autoHide={2000}
+                    severity="success"
+                    message="Tofaktor er tilbakestilt."
+                />
+                <BasicSnackbar 
+                    open={snackOpen && (deleteData.status === 400 || deleteData.status === 404) && isButtonLoading === false}
+                    onClose={handleClose}
+                    autoHide={2000}
+                    severity="error"
+                    message="Oi, her gikk det galt. Prøv igjen."
+                />
             </div>
         )
     } else {
@@ -240,83 +202,33 @@ export default function Verified() {
                 </div>
                 <div className={styles.heading}>
                     <Heading3>
-                        Du har allerede opprettet MFA til din feide konto, ønsker du å slette den gamle og opprette en ny? 
+                        Du har allerede opprettet tofaktor til din konto, ønsker du å slette den gamle og opprette en ny? 
                     </Heading3>
                 </div>    
                 <div className={styles.btn}>
-                    {isButtonLoading ? (<Button spinner> Opprett ny MFA</Button>) : (<Button onClick={() => { 
-                        if(window.confirm('Du vil nå slette din eksisterende MFA, du vil ikke ha ny MFA før du oppretter en ny og validerer denne!')) {   
-                            setDeleteState(true)
-                        }
-                        
+                    {isButtonLoading ? (<Button spinner> Opprett ny Tofaktor</Button>) : (<Button onClick={() => { 
+                        setDeleteState(true)
+                        setSnackOpen(true)
                     }}
+                    disabled={snackOpen}
                     >
-                        Opprett ny MFA
+                        Opprett ny Tofaktor
                     </Button>)}
                 </div>
-                <Dialog
-                    isOpen={modalOpen && deleteData.status === 200}
-                    persistent
-                    draggable={false}
-                    resizeable={false}
-                    onDismiss={() => { setIsModalOpen(false)}}
-                >
-                    <DialogTitle>
-                        <Heading2>
-                            Slett MFA
-                        </Heading2>
-                    </DialogTitle>
-                    <DialogBody>
-                        <div className={styles.heading}>
-                            <Heading4>MFA er slettet</Heading4>
-                        </div>
-                        <div className={styles.qrCode}>
-                            <AnimateSuccess />
-                        </div>
-                    </DialogBody>
-                    <div className={styles.btn}>
-                        <DialogActions>
-                            <Button size='small' onClick={ () => {
-                                setIsModalOpen(false); 
-                                navigate('/createmfa')
-                                setIsLoading(true); 
-                                }}
-                            >
-                            OK
-                        </Button>
-                        </DialogActions>
-                    </div>
-                </Dialog>
-                <Dialog
-                    isOpen={modalOpen && (deleteData.status === 400 || deleteData.status === 404)}
-                    persistent
-                    draggable={false}
-                    resizeable={false}
-                    onDismiss={() => { setIsModalOpen(false)}}
-                >
-                    <DialogTitle>
-                        <Heading2>Error</Heading2>
-                    </DialogTitle>
-                    <DialogBody>
-                        <div className={styles.heading}>
-                            <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
-                        </div>
-                        <div className={styles.qrCode}>
-                            <AnimateError />
-                        </div>
-                    </DialogBody>
-                    <div className={styles.btn}>
-                        <DialogActions>
-                                <Button size='small' onClick={ () => {
-                                    setIsModalOpen(false)
-                                    window.location.reload() //Hacky, må fikses!
-                                }}
-                                    >
-                                        OK
-                                    </Button>
-                        </DialogActions>
-                    </div>
-                </Dialog>
+                <BasicSnackbar 
+                    open={snackOpen && deleteData.status === 200 && isButtonLoading === false}
+                    onClose={handleClose}
+                    autoHide={2000}
+                    severity="success"
+                    message="Tofaktor er tilbakestilt."
+                />
+                <BasicSnackbar 
+                    open={snackOpen && (deleteData.status === 400 || deleteData.status === 404) && isButtonLoading === false}
+                    onClose={handleClose}
+                    autoHide={2000}
+                    severity="error"
+                    message="Oi, her gikk det galt. Prøv igjen."
+                />
             </div>
         )
     }

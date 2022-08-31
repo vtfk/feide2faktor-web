@@ -84,13 +84,17 @@ export async function postMFA(pid) {
 }
 
 // Verify that the 6 digit code that the user is showed in the selected application is a match with the 6 digit code expected. If its a success a secret will be posted to the azuread object.
-export async function verifyToken(token, pid) {
+export async function verifyToken(token, pid, acr, amr) {
     // For local testing
     if(personalPidTestValue !== undefined) {
         pid = personalPidTestValue
     }
     let tokenBody = {
-        token: token
+        token: token,
+        authLevel: {
+            acr: acr,
+            amr: amr
+        }
     }
     return await axios.post(`${baseURL}verifyToken/${pid}`, tokenBody, {headers:headersBody}).then(res => res).catch((error) => {
         if(error.res) {

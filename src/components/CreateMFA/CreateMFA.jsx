@@ -1,19 +1,17 @@
 // React
 import { useState, useEffect } from "react"
-import { Button, Heading3, Spinner, Dialog, DialogTitle, DialogBody, DialogActions, Heading2, Heading4 } from '@vtfk/components'
+import { Button, Heading3, Spinner, Heading2 } from '@vtfk/components'
 import { useSession } from "@vtfk/react-oidc"
 import { useNavigate } from 'react-router-dom'
 import styles from './styles.module.css'
+import BasicSnackbar from "../../utils/BasicSnackbar"
+
 
 // API
 import { checkUser, postMFA} from "../../utils/api"
 
 //Queries
 import { Name } from "../../utils/queries"
-
-// Animations
-import AnimateError from "../AnimateError"
-import AnimateSuccess from "../AnimateSuccess"
 
 export default function CreateMFA() {
     const { isAuthenticated } = useSession()
@@ -28,7 +26,8 @@ export default function CreateMFA() {
     const [userStatus, setUserStatus] = useState([])
     const [mfaCreated, setMfaCreated] = useState([])
     const [stateChange, setStateChange] = useState([])
-    const [modalOpen, setIsModalOpen] = useState(false)
+    const [snackOpen, setSnackOpen] = useState(false)
+
 
     // Check userstatus
     useEffect (() => {
@@ -83,12 +82,6 @@ export default function CreateMFA() {
                     // console.log('recreate mfa')
                     navigate('/verified') 
                 }
-                else {
-                    // console.log(checkMFA.status)
-                    // console.log(checkMFA.data.userMongo[0]?.secret)
-                    // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
-                }
-                // console.log(checkMFA)
                 setIsLoading(false)
                 setIsButtonLoading(false)
             }
@@ -100,12 +93,30 @@ export default function CreateMFA() {
         }
     }, [])
 
+    const handleClose = (event, reason) => {
+        setIsButtonLoading(false)
+        if(reason === 'clickaway') {
+            return
+        }
+        if(mfaCreated.status === 201 && stateChange === true && isButtonLoading === false) {
+            setSnackOpen(false)
+            setStateChange(false)
+            navigate('/verifyMFA')
+        }
+        if(mfaCreated.status !== 201 && stateChange === true && isButtonLoading === false) {
+            setSnackOpen(false)
+            setStateChange(false)
+        }
+    }
+
     //Get the users name
     const name = Name(pid)
 
     // Create MFA
     useEffect(() => {
-        setIsButtonLoading(true)
+        if(stateChange === true) {
+            setIsButtonLoading(true)
+        }
         let didCancel = false
 
         async function createMFA() {
@@ -121,25 +132,25 @@ export default function CreateMFA() {
             didCancel = true 
         }
     }, [stateChange, pid])
-
-    
     
     // Handle the "Opprett MFA" button click
     const handleClick = () => {
         setStateChange(true)
-        setIsModalOpen(true)
+        setSnackOpen(true)
     }
-
-   
 
     if(isLoading) {
         return ( 
-            <div className={styles.qrCode}>
-                <Spinner size='medium' transparent />
+            <div className={styles.center}>
+                <div className={styles.heading}>
+                    <Heading3>Sjekker din tofaktor status, venligst vent</Heading3>
+                </div>
+                <div className={styles.qrCode}>
+                    <Spinner size='medium' transparent />
+                </div>
             </div>
         )
     }
-
     
     return (
         <div className={styles.center}>
@@ -147,82 +158,33 @@ export default function CreateMFA() {
                 <Heading2>Hei {name.data} </Heading2>
             </div>
             <div className={styles.heading}>
-                <Heading3>Du har ikke opprettet MFA til din feide konto, opprett MFA til din feidekonto ved å trykke på knappen under.</Heading3>
+                <Heading3>Du har ikke opprettet tofaktor til din feide konto, opprett tofaktor til din feidekonto ved å trykke på knappen under.</Heading3>
             </div>
             <div className={styles.btn}>
-                {isButtonLoading ? (<Button spinner> Opprett MFA</Button>) : (
+                {isButtonLoading ? (<Button spinner> Opprett Tofaktor</Button>) : (
                     <Button onClick={() => {
                         handleClick()
                     }}
+                    disabled={snackOpen}
                     >
-                        Opprett MFA
+                        Opprett Tofaktor
                 </Button>
                 )}
             </div>
-            <Dialog
-                isOpen={modalOpen && mfaCreated.status === 201 && stateChange === true}
-                persistent
-                draggable={false}
-                resizeable={false}
-                onDismiss={() => { setIsModalOpen(false)
-            }}
-            >
-                <DialogTitle>
-                    <Heading2>
-                        Vellykket    
-                    </Heading2>
-                </DialogTitle>
-                <DialogBody>
-                    <div className={styles.heading}>
-                        <Heading4>Du har nå opprettet MFA. Trykk OK for å fortsette videre.</Heading4>
-                    </div>
-                    <div className={styles.qrCode}>
-                        <AnimateSuccess />
-                    </div>   
-                </DialogBody>
-                <div className={styles.btn}>
-                    <DialogActions>
-                        <Button size='small' onClick={ () => {
-                            setIsModalOpen(false)
-                            setStateChange(false)
-                            navigate('/verifyMFA')
-                        }}
-                            >
-                                OK
-                            </Button>
-                    </DialogActions>
-                </div>
-            </Dialog>
-            <Dialog
-                isOpen={modalOpen && mfaCreated.status !== 201 && stateChange === true && isButtonLoading === false}
-                persistent
-                draggable={false}
-                resizeable={false}
-                onDismiss={() => { setIsModalOpen(false)}}
-            >
-                <DialogTitle>
-                    <Heading2>Ikke vertifisert</Heading2>
-                </DialogTitle>
-                <DialogBody>
-                    <div className={styles.heading}>
-                        <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
-                    </div>
-                    <div className={styles.qrCode}>
-                        <AnimateError />
-                    </div>
-                </DialogBody>
-                <div className={styles.btn}>
-                    <DialogActions>
-                            <Button size='small' onClick={ () => {
-                                setIsModalOpen(false)  
-                                setStateChange(false)
-                            }}
-                                >
-                                    OK
-                                </Button>
-                    </DialogActions>
-                </div>
-            </Dialog>
+            <BasicSnackbar 
+                open={snackOpen && mfaCreated.status === 201 && stateChange === true}
+                onClose={handleClose}
+                autoHide={2000}
+                severity="success"
+                message="Du har nå opprettet tofaktor."
+            />
+            <BasicSnackbar 
+                open={snackOpen && mfaCreated.status !== 201 && stateChange === true && isButtonLoading === false}
+                onClose={handleClose}
+                autoHide={2000}
+                severity="error"
+                message="Oi, her gikk det galt. Prøv igjen."
+            />
         </div>        
     )
 }

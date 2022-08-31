@@ -1,16 +1,13 @@
 // React
 import { useState, useEffect } from "react"
-import { Button, Heading3, Spinner, TextField, Dialog, DialogTitle, DialogBody, DialogActions, Heading2, Heading4 } from '@vtfk/components'
+import { Button, Heading3, Spinner, TextField } from '@vtfk/components'
 import { useSession } from "@vtfk/react-oidc"
 import { useNavigate } from 'react-router-dom'
 import styles from './styles.module.css'
+import BasicSnackbar from "../../utils/BasicSnackbar"
 
 // API
 import { checkUser, getSecret, getQrCode, verifyToken } from "../../utils/api"
-
-// Animations
-import AnimateError from "../AnimateError"
-import AnimateSuccess from "../AnimateSuccess"
 
 export default function VerifyMFA() {
     const { isAuthenticated } = useSession()
@@ -18,6 +15,12 @@ export default function VerifyMFA() {
 
     // Get the pid
     const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
+
+    // Get the amr value Eks: BankID
+    const amr = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[3].split('"')[3]
+
+    // get the acr value Eks: Level4
+    const acr = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[7].split('"')[3]
 
     // States
     const [isLoading, setIsLoading] = useState(true)
@@ -28,8 +31,8 @@ export default function VerifyMFA() {
     const [tokenInput, setTokenInput] = useState('')
     const [tokenData, setTokenData] = useState([])
     const [stateChange, setStateChange] = useState(false)
-    const [modalOpen, setIsModalOpen] = useState(false)
     const [mfaValidCheck, setMfaValidCheck] = useState(true)
+    const [snackOpen, setSnackOpen] = useState(false)
 
     // Check userstatus
     useEffect(() => {
@@ -79,12 +82,6 @@ export default function VerifyMFA() {
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
                     navigate('/verified') 
                 }
-                else {
-                    // console.log(checkMFA.status)
-                    // console.log(checkMFA.data.userMongo[0]?.secret)
-                    // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
-                }
-                // console.log(checkMFA)
                 setIsButtonLoading(false)
                 setIsLoading(false)
             }
@@ -95,6 +92,25 @@ export default function VerifyMFA() {
             didCancel = true
         }
     }, [pid])
+
+    const handleClose = (event, reason) => {
+        setIsButtonLoading(false)
+        if(reason === 'clickaway') {
+            return
+        }
+        if(tokenData.length !== 0 && tokenData.data?.verified === 'Verified' && isButtonLoading === false) {
+            setSnackOpen(false)
+            setStateChange(false)
+            setTokenInput('')
+            navigate('/verified')
+        }
+        if(tokenData.length !== 0 && tokenData.data?.verified === 'Not verified' && isButtonLoading === false) {
+            setSnackOpen(false)
+            setStateChange(false)
+            setTokenInput('')
+            setMfaValidCheck(false)
+        }
+    }
      
     // Get user secret and the qr-code
     useEffect(() => {
@@ -122,13 +138,15 @@ export default function VerifyMFA() {
 
     // Try to verify the token input
     useEffect(() => {
-        setIsButtonLoading(true)
+        if(stateChange === true) {
+            setIsButtonLoading(true)
+        }
         let didCancel = false
 
         async function verifyMFA() {
             if(!didCancel && stateChange === true) {
                 setTokenData([])
-                const postVerifyToken = await verifyToken(tokenInput, pid)
+                const postVerifyToken = await verifyToken(tokenInput, pid, acr, amr)
                 setTokenData(await postVerifyToken)
                 setIsButtonLoading(false)
             }
@@ -142,8 +160,13 @@ export default function VerifyMFA() {
 
     if(isLoading || qrCode.length === 0) {
         return ( 
-            <div className={styles.qrCode}>
-                <Spinner size='medium' transparent />
+            <div className={styles.center}>
+                <div className={styles.heading}>
+                    <Heading3>Sjekker din tofaktor status, venligst vent</Heading3>
+                </div>
+                <div className={styles.qrCode}>
+                    <Spinner size='medium' transparent />
+                </div>
             </div>
         )
     }
@@ -180,83 +203,30 @@ export default function VerifyMFA() {
             </div>
             <div className={styles.btn}>
                 {isButtonLoading ? (<Button spinner> Valider</Button>) : (<Button onClick={() => {
-                    setIsModalOpen(!modalOpen);
+                    setSnackOpen(true)
                     setMfaValidCheck(true) 
                     setStateChange(true);
                     }} 
-                    disabled={tokenInput.length < 6}
+                    disabled={tokenInput.length < 6 || snackOpen}
                     >
                         Valider
                 </Button>)}
             </div>
-            {/* && tokenData.data.verified === 'Verified' */}
-        <Dialog
-            isOpen={modalOpen && tokenData.length !== 0 && tokenData.data?.verified === 'Verified'}
-            persistent
-            draggable={false}
-            resizeable={false}
-            onDismiss={() => { 
-                setIsModalOpen(false)
-            }}
-        >
-            <DialogTitle>
-                <Heading2>
-                    Vertifisert    
-                </Heading2>
-            </DialogTitle>
-            <DialogBody>
-                <div className={styles.heading}>
-                    <Heading4>Du har nå aktivert og vertifisert MFA til din feidekonto</Heading4>
-                </div>
-                <div className={styles.qrCode}>
-                    <AnimateSuccess />
-                </div>   
-            </DialogBody>
-            <div className={styles.btn}>
-                <DialogActions>
-                    <Button size='small' onClick={ () => {
-                        setIsModalOpen(false)
-                        setTokenInput('')
-                        navigate('/verified')
-                        }}
-                    >
-                        OK
-                    </Button>
-                </DialogActions>
-            </div>
-        </Dialog>
-        <Dialog
-            isOpen={modalOpen && tokenData.length !== 0 && tokenData.data?.verified === 'Not verified'}
-            persistent
-            draggable={false}
-            resizeable={false}
-            onDismiss={() => { setIsModalOpen(false)}}
-        >
-            <DialogTitle>
-                <Heading2>Ikke vertifisert</Heading2>
-            </DialogTitle>
-            <DialogBody>
-                <div className={styles.heading}>
-                    <Heading4>Oi, her gikk det galt. Prøv igjen.</Heading4>
-                </div>
-                <div className={styles.qrCode}>
-                    <AnimateError />
-                </div>
-            </DialogBody>
-            <div className={styles.btn}>
-                <DialogActions>
-                        <Button size='small' onClick={ () => {
-                            setIsModalOpen(false)
-                            setTokenInput('')
-                            setMfaValidCheck(false)
-                        }}
-                            >
-                                OK
-                            </Button>
-                </DialogActions>
-            </div>
-        </Dialog>
-    </div> 
+            <BasicSnackbar 
+                open={snackOpen && tokenData.length !== 0 && tokenData.data?.verified === 'Verified'}
+                onClose={handleClose}
+                autoHide={2000}
+                severity="success"
+                message="Validering vellykket."
+            />
+            <BasicSnackbar 
+                open={snackOpen && tokenData.length !== 0 && tokenData.data?.verified === 'Not verified'}
+                onClose={handleClose}
+                autoHide={3000}
+                severity="error"
+                message="Validering feilet, prøv igjen."
+            />
+        </div> 
     )
 }
 
