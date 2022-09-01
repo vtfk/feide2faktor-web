@@ -12,7 +12,6 @@ export default function Header() {
     const navigate = useNavigate()
 
     const { logout, isAuthenticated } = useSession()
-    
     const [showTopBar, setShowTopBar] = useState(false)
 
     let displayName = ''
@@ -31,6 +30,7 @@ export default function Header() {
         const letters = fullName.match(/\b(\w)/g)
         return letters
     }
+
     const IDPortenAUTH = window.sessionStorage.getItem('IDPorten-AUTH')
     if(isAuthenticated) {
         if(IDPortenAUTH !== undefined) {
@@ -42,7 +42,7 @@ export default function Header() {
     }
     
     const results = Name(pid)
-    if(results.isLoading && pid !== '') {
+    if(results.isLoading && pid !== '' && isAuthenticated) {
         return (
             <div className={styles.header}>
                 <div className={styles.logoText}>
@@ -60,9 +60,9 @@ export default function Header() {
             </div>
         )
     }
-
-    if(results.isError) {
-        return <span>Error: {results.error}</span>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+    
+    if(results.isError ) {
+        console.log(results.error)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
     }
 
     if(results.data) {
@@ -71,7 +71,7 @@ export default function Header() {
         displayName = results.data
         firstName = letters[0]
         lastName = letters[1]
-    }
+    } 
 
     return(
         <div className={styles.header}>
