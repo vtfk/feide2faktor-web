@@ -4,6 +4,7 @@ import { useSession } from "@vtfk/react-oidc";
 import { useState, useEffect } from "react"
 import styles from './styles.module.css'
 import vtfkLogo from '../../assets/VTFK.svg'
+import GuideModal from "../../utils/Guide";
 
 //Queries
 import { Name } from "../../utils/queries";
@@ -13,6 +14,7 @@ export default function Header() {
 
     const { logout, isAuthenticated } = useSession()
     const [showTopBar, setShowTopBar] = useState(false)
+    const [showModal, setShowModal] = useState(false)
 
     let displayName = ''
     let firstName = ''
@@ -40,7 +42,7 @@ export default function Header() {
             }
         }
     }
-    
+
     const results = Name(pid)
     if(results.isLoading && pid !== '' && isAuthenticated) {
         return (
@@ -81,6 +83,7 @@ export default function Header() {
                     Selvbetjeningsportal
                 </Heading2>
             </div>
+            <GuideModal open={showModal} close={() => {setShowModal(false)}} />
             {showTopBar && <TopBar
                 displayName={displayName} 
                 firstName={firstName} 
@@ -89,7 +92,7 @@ export default function Header() {
                 >
                     <IconDropdownNavItem closeOnClick title='Hjem' onClick={ () => navigate('/signedin') }/>
                     {isAuthenticated && <IconDropdownNavItem closeOnClick title='Logg ut' onClick={ logout } />}
-                    {/* <IconDropdownNavItem closeOnClick title='Admin' onClick={ () => navigate('/admin') }/> */}
+                    <IconDropdownNavItem closeOnClick title='Guide' onClick={ () =>  setShowModal(true) }/>
             </TopBar>}
         </div> 
     )

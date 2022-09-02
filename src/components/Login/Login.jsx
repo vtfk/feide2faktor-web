@@ -2,12 +2,13 @@ import { Button, Heading3, Heading2, Spinner } from '@vtfk/components'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from '@vtfk/react-oidc';
 import styles from './styles.module.css'
-import React from "react";
+import React, {useState} from "react";
+import GuideModal from '../../utils/Guide';
 
 export default function Login() {
     const navigate = useNavigate()
 
-
+    const [showModal, setShowModal] = useState(false)
     const { isAuthenticated, login, authStatus, loginError } = useSession()
 
     if(['pending'].includes(authStatus)) {
@@ -39,8 +40,11 @@ export default function Login() {
                 </div>
                 <div>
                 <Heading3>
-                    For at du skal kunne opprette 2-faktor for din feidekonto forutsetter det at du har en feidekonto og mulighet til å bruke Google Authenticator. Du kan også bruke den andre metoden, hvor du skriver inn koden.  
-                </Heading3>
+                For å kunne benytte deg av selvbetjeningsportalen må du logge deg inn ved bruk av ID-Porten. 
+                Her kan du velge BankID, BuyPass ID eller Commfides som innlogginsmetode. 
+                <br/>
+                <br/>
+                Om du skulle lure på noe kan du trykke på «Hjelp» knappen. Denne vil du også finne igjen etter at du har logget inn i menyen som du finner oppe i høyre hjørne av applikasjonen.                </Heading3>
                 </div>
             </div>
             <div className={styles.button}>
@@ -49,12 +53,13 @@ export default function Login() {
                         Login med ID-Porten
                     </Button>
                 </div>
-                <div className={styles.authenticated}> 
-                    <Button onClick={ () => navigate('/authenticated')}>
-                        Microsoft
+                <div className={styles.button}> 
+                    <Button onClick={ () => setShowModal(true)}>
+                        Hjelp
                     </Button>
                 </div>
             </div>
+            <GuideModal open={showModal} close={() => {setShowModal(false)}} />
         </div>
     )
 }
