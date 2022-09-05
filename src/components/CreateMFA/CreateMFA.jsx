@@ -158,7 +158,7 @@ export default function CreateMFA() {
                 <Heading2>Hei {name.data} </Heading2>
             </div>
             <div className={styles.heading}>
-                <Heading3>Du har ikke opprettet tofaktor til din feide konto, opprett tofaktor til din feidekonto ved å trykke på knappen under.</Heading3>
+                <Heading3>Du har ikke opprettet tofaktor til din konto, opprett tofaktor til din feidekonto ved å trykke på knappen under.</Heading3>
             </div>
             <div className={styles.btn}>
                 {isButtonLoading ? (<Button spinner> Opprett Tofaktor</Button>) : (

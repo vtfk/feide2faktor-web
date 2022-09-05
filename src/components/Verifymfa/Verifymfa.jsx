@@ -175,7 +175,7 @@ export default function VerifyMFA() {
         <div className={styles.center}>
             <div>
                 <Heading3>
-                    Legg til din nøkkel ved å skanne QR-Koden eller skriv inn hemmeligheten som står under QR-Koden i din authentiserings applikasjon.
+                    Legg til din nøkkel ved å skanne QR-Koden eller skriv inn hemmeligheten som står under QR-Koden i din autentiserings applikasjon.
                 </Heading3>
             </div>
             <div>
@@ -190,7 +190,7 @@ export default function VerifyMFA() {
                 <TextField 
                     placeholder='Eks: 123456' 
                     type='number' 
-                    rounded hint='Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon.' 
+                    rounded hint='Skriv inn din 6-sifrede kode som du finner i din autentiserings applikasjon.' 
                     alwaysHint
                     required
                     onChange={(e) => setTokenInput(e.target.value)} 
@@ -198,7 +198,7 @@ export default function VerifyMFA() {
             </div>
             <div className={styles.heading}>
                 <Heading3>
-                    Skriv inn din 6-sifrede kode som du finner i din authentiserings applikasjon og trykk på valider. 
+                    Skriv inn din 6-sifrede kode som du finner i din autentiserings applikasjon og trykk på valider. 
                 </Heading3>
             </div>
             <div className={styles.btn}>
