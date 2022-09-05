@@ -6,7 +6,7 @@ const GuideModal = ({open, close}) => {
     return (
         <>
             <Modal open={open} title='Guide' onDismiss={close}>
-                <div style={{'margin-left': '1rem', 'margin-top': '-1.5rem'}}>
+                <div style={{'margin-left': '1rem', 'margin-top': '-1.5rem', 'overflow': 'auto'}}>
                     <Heading3>
                         Hva er dette?
                     </Heading3>
