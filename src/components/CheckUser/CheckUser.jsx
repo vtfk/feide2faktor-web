@@ -10,21 +10,22 @@ import { checkUser } from "../../utils/api"
 
 export default function CheckUser() {
     const navigate = useNavigate()
-    const { isAuthenticated } = useSession()
+    const { isAuthenticated, user, logout } = useSession()
 
-    const [user, setUser] = useState([])
+    const [userData, setUserData] = useState([])
     const [isLoading, setIsLoading] = useState(true)
 
-    const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
-
+    const pid = user.pid
+    const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
+    
     const fetchData = async () => {
-        const checkUserRequest = await checkUser(pid)
-
+        const checkUserRequest = await checkUser(pid, apiToken)
+        // console.log(checkUserRequest)
         await axios.all([checkUserRequest]).then(
             axios.spread((...data) => {
                 const userData = data[0]
 
-                setUser(userData)
+                setUserData(userData)
                 setIsLoading(false)
             })
         )
@@ -36,11 +37,9 @@ export default function CheckUser() {
 
     useEffect (() => {
         setIsLoading(true)
-        if(user.length !== 0) {
-            if(isAuthenticated && user.status === 200) {
-                // navigate('/signedin')
+        if(userData.length !== 0) {
+            if(isAuthenticated && userData.status === 200 && userData.data.active !== false) {
                 let didCancel = false
-
                 async function checkMFA() {
                     if(!didCancel) {
                         // Get data from the mongoDB
@@ -61,25 +60,24 @@ export default function CheckUser() {
                         else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
                             navigate('/verified') 
                         }
-                        else {
-                            // console.log(checkMFA.status)
-                            // console.log(checkMFA.data.userMongo[0]?.secret)
-                            // console.log(checkMFA.data.userAzureAD.norEduPersonAuthnMethod)
-                        }
                         // console.log(checkMFA)
                         setIsLoading(false)
                     }
                 }
-
                 checkMFA()
                 return () => {
                     didCancel = true
                 }
-            } else {
+            } else if(userData.data?.active === false) {
+                window.sessionStorage.removeItem('selvbetjening-Auth')
+                window.sessionStorage.removeItem('IDPorten-AUTH')
+                logout()
+            } 
+            else {
                 navigate('/notfound')
             }
         }
-    }, [user])
+    }, [userData])
 
     if(isLoading) {
         return ( 

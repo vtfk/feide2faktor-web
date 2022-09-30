@@ -12,7 +12,7 @@ import { Name } from "../../utils/queries";
 export default function Header() {
     const navigate = useNavigate()
 
-    const { logout, isAuthenticated } = useSession()
+    const { logout, isAuthenticated, user } = useSession()
     const [showTopBar, setShowTopBar] = useState(false)
     const [showModal, setShowModal] = useState(false)
 
@@ -20,7 +20,7 @@ export default function Header() {
     let firstName = ''
     let lastName = ''
 
-    let pid = ''
+    let pid = user.pid
 
     useEffect(() => {
         if(isAuthenticated){
@@ -33,17 +33,19 @@ export default function Header() {
         return letters
     }
 
-    const IDPortenAUTH = window.sessionStorage.getItem('IDPorten-AUTH')
-    if(isAuthenticated) {
-        if(IDPortenAUTH !== undefined) {
-            const pidCheck = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
-            if(pidCheck !== undefined) {
-                pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
-            }
-        }
-    }
+    // const IDPortenAUTH = window.sessionStorage.getItem('IDPorten-AUTH')
+    // if(isAuthenticated) {
+    //     if(IDPortenAUTH !== undefined) {
+    //         const pidCheck = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
+    //         if(pidCheck !== undefined) {
+    //             pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
+    //         }
+    //     }
+    // }
 
+    
     const results = Name(pid)
+    
     if(results.isLoading && pid !== '' && isAuthenticated) {
         return (
             <div className={styles.header}>
@@ -52,18 +54,31 @@ export default function Header() {
                         <Heading2 className={styles.text}>
                             Selvbetjeningsportal
                         </Heading2>
-                    <TopBar 
+                    {/* <TopBar 
                         displayName={<Skeleton variant='text'  width={100} height={20}/>}
                         firstName={firstName}
                         lastName={lastName}
                         className={styles.topBar}
-                    />
+                    /> */}
                 </div>
             </div>
         )
     }
+
+    if(results.data === '' || results.data === undefined) {
+        return (
+            <div className={styles.header}>
+                <div className={styles.logoText}>
+                        <img src={vtfkLogo} alt="vtfkLogo" height={60}></img>
+                        <Heading2 className={styles.text}>
+                            Selvbetjeningsportal
+                        </Heading2>
+                    </div>
+            </div> 
+        )
+    }
     
-    if(results.isError ) {
+    if(results.isError) {
         console.log(results.error)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
     }
 

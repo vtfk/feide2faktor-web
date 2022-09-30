@@ -10,17 +10,21 @@ import BasicSnackbar from "../../utils/BasicSnackbar"
 import { checkUser, getSecret, getQrCode, verifyToken } from "../../utils/api"
 
 export default function VerifyMFA() {
-    const { isAuthenticated } = useSession()
+    const { isAuthenticated, logout } = useSession()
+    
     const navigate = useNavigate()
 
-    // Get the pid
-    const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
+    let pid, amr, acr
+    if(window.sessionStorage.getItem('IDPorten-AUTH') !== null) {
+        // Get the pid
+        pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
 
-    // Get the amr value Eks: BankID
-    const amr = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[3].split('"')[3]
+        // Get the amr value Eks: BankID
+        amr = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[3].split('"')[3]
 
-    // get the acr value Eks: Level4
-    const acr = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[7].split('"')[3]
+        // get the acr value Eks: Level4
+        acr = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[7].split('"')[3]
+    }
 
     // States
     const [isLoading, setIsLoading] = useState(true)
@@ -66,8 +70,13 @@ export default function VerifyMFA() {
             if(!didCancel) {
                 // Get data from the mongoDB
                 const checkMFA = await checkUser(pid)
-        
-                if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
+
+                if(checkMFA.data?.active === false) {
+                    window.sessionStorage.removeItem('selvbetjening-Auth')
+                    window.sessionStorage.removeItem('IDPorten-AUTH')
+                    logout()
+                } 
+                else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
                     navigate('/verifyMFA')
                 }
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.tempSecret && !checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD?.norEduPersonAuthnMethod) {
@@ -86,7 +95,6 @@ export default function VerifyMFA() {
                 setIsLoading(false)
             }
         }
-
         checkMFA()
         return () => {
             didCancel = true
@@ -119,7 +127,7 @@ export default function VerifyMFA() {
 
         async function getUserSecret() {
             if(!didCancel) {
-                const qrCode = await getQrCode(pid)
+                let qrCode = await getQrCode(pid)
                 const secret = await getSecret(pid)
                 const dataQrCode = await qrCode.data
                 const dataSecret = await secret.data
@@ -148,6 +156,11 @@ export default function VerifyMFA() {
                 setTokenData([])
                 const postVerifyToken = await verifyToken(tokenInput, pid, acr, amr)
                 setTokenData(await postVerifyToken)
+                if(postVerifyToken.data?.active === false) {
+                    window.sessionStorage.removeItem('selvbetjening-Auth')
+                    setTimeout(() => {  logout() }, 5000);
+                    setSnackOpen(true)
+                }
                 setIsButtonLoading(false)
             }
         }
@@ -225,6 +238,13 @@ export default function VerifyMFA() {
                 autoHide={3000}
                 severity="error"
                 message="Validering feilet, prøv igjen."
+            />
+            <BasicSnackbar 
+                open={snackOpen && tokenData.data?.active === false}
+                onClose={handleClose}
+                autoHide={3000}
+                severity="info"
+                message="Du må logge inn på nytt, du blir nå logget ut"
             />
         </div> 
     )

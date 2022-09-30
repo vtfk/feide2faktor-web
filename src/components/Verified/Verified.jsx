@@ -7,14 +7,17 @@ import styles from './styles.module.css'
 import BasicSnackbar from "../../utils/BasicSnackbar"
 
 // API
-import { checkUser, deleteMFA, getName } from "../../utils/api"
+import { checkUser, deleteMFA } from "../../utils/api"
+
+//Queries
+import { Name } from "../../utils/queries";
 
 export default function Verified() {
-    const { isAuthenticated } = useSession()
+    const { isAuthenticated, logout, user } = useSession()
     const navigate = useNavigate()
 
     // Get the pid
-    const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
+    const pid = user.pid
 
     // States
     const [isLoading, setIsLoading] = useState(true)
@@ -59,8 +62,13 @@ export default function Verified() {
                 // Get data from the mongoDB
                 const checkMFA = await checkUser(pid)
                 setCheckedUSer(await checkMFA)
-        
-                if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
+
+                if(checkMFA.data?.active === false) {
+                    window.sessionStorage.removeItem('selvbetjening-Auth')
+                    window.sessionStorage.removeItem('IDPorten-AUTH')
+                    logout()
+                }
+                else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
                     navigate('/verifyMFA')
                 }
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.tempSecret && !checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD?.norEduPersonAuthnMethod) {
@@ -86,25 +94,36 @@ export default function Verified() {
         }
     }, [pid])
 
-    // Get the username when pid value changes. 
+    const name = Name(pid)
+
+    // Get the username
     useEffect(() => {
         setIsLoading(true)
         let didCancel = false
         
         async function getUserName() {
             if(!didCancel) {
-                const userName = await getName(pid)
-                const data = await userName
+                // const userName = await getName(pid)
+                // const data = await userName
                 
-                setUserName(data)
-                setIsLoading(false)
+                if(name.isLoading){
+                    setIsLoading(true)
+                }
+                if(name.isError){
+                    console.log(name.error)
+                }
+                if(name.data){
+                    setUserName(name.data)
+                    setIsLoading(false)
+                }
             }
         }
         getUserName()
         return () => {
             didCancel = true
         }
-    }, [pid])
+    })
+    
 
     const handleClose = (event, reason) => {
         setIsButtonLoading(false)
@@ -131,9 +150,14 @@ export default function Verified() {
             if(!didCancel && deleteState === true) {
                 const deleteMFAData = await deleteMFA(pid)
                 const data = await deleteMFAData
-
+                
                 setDeleteData(data)
-                // setIsModalOpen(true)
+                if(deleteMFAData.data?.active === false) {
+                    window.sessionStorage.removeItem('selvbetjening-Auth')
+                    setTimeout(() => {  logout() }, 5000);
+                    setSnackOpen(true)
+                }
+
                 setIsButtonLoading(false)
             }
         }
@@ -156,6 +180,7 @@ export default function Verified() {
             </div>
         )
     }
+    console.log(deleteData.data)
     if((checkedUser.data?.userMongo[0]?.secret && !checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod) || (!checkedUser.data?.userMongo[0]?.secret && checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod)) {
         return (
             <div className={styles.center}>
@@ -191,6 +216,13 @@ export default function Verified() {
                     autoHide={2000}
                     severity="error"
                     message="Oi, her gikk det galt. Prøv igjen."
+                />
+                <BasicSnackbar 
+                    open={snackOpen && deleteData.data?.active === false}
+                    onClose={handleClose}
+                    autoHide={3000}
+                    severity="info"
+                    message="Du må logge inn på nytt, du blir nå logget ut"
                 />
             </div>
         )
@@ -228,6 +260,13 @@ export default function Verified() {
                     autoHide={2000}
                     severity="error"
                     message="Oi, her gikk det galt. Prøv igjen."
+                />
+                <BasicSnackbar 
+                    open={snackOpen && deleteData.data?.active === false}
+                    onClose={handleClose}
+                    autoHide={3000}
+                    severity="info"
+                    message="Du må logge inn på nytt, du blir nå logget ut"
                 />
             </div>
         )

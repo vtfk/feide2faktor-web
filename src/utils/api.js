@@ -1,19 +1,40 @@
 import axios from "axios"
+
 const baseURL = process.env.REACT_APP_API_URL
 const key = process.env.REACT_APP_API_KEY_AZF
-const ocpApimSubKey = process.env.REACT_APP_OCP_APIM_SUBSCRIPTION_KEY
 
 // Ditt personlige fnr. Da det ikke er mulig å lage reele test personer til ViS må du bruke deg selv eller noen du kjenner som test person. 
 // NB! Du vil slette og opprete 2 faktor til feide ved å bruke ditt fnr i denne applikasjonen om du har en feide bruker.
 const personalPidTestValue = process.env.REACT_APP_PERSONAL_PID_TEST_VALUE
+let apiToken = undefined
 
-const headersBody = {
-    'x-api-key': key,
-    'Ocp-Apim-Subscription-Key': ocpApimSubKey,
+const checkSessionStorage = window.sessionStorage.getItem('selvbetjening-Auth')
+if(checkSessionStorage !== null) {
+    apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
+}
+
+// Validate idporten token and return a valid API-token 
+export async function validateToken(token) {
+        return await axios.get(`${baseURL}validateToken/${token}`).then(res => res).catch((error) => {
+        if(error.res) {
+            return error.res
+        } else if(error.request) {
+            return error.request
+        } else {
+            return ('Error:', error.message)
+        }
+    })
 }
 
 // Get the user information from mongodb(if exist) and from azureAD by passing username(per1234) or fnr/pid(12345678910)
-export async function checkUser(pid) {
+export async function checkUser(pid, apitoken) {
+    if(apiToken === undefined) {
+        apiToken = apitoken
+    }
+    const headersBody = {
+        'x-api-key': key,
+        'Authorization': apiToken 
+    }
     // For local testing
     if(personalPidTestValue !== undefined) {
         pid = personalPidTestValue
@@ -30,7 +51,13 @@ export async function checkUser(pid) {
 }
 
 // Get the QR-Code for the user to scan and add to a selected authenticator app. Where a valid 6-digit code is displayed. Pass the username(per1234) or fnr/pid(12345678910)
-export async function getQrCode(pid) {
+export async function getQrCode(pid) {    
+    const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
+    const headersBody = {
+        'x-api-key': key,
+        'Authorization': apiToken
+    }
+
     // For local testing
     if(personalPidTestValue !== undefined) {
         pid = personalPidTestValue
@@ -48,6 +75,12 @@ export async function getQrCode(pid) {
 
 // Get the TOTP-Feide secret. Pass the username(per1234) or fnr/pid(12345678910)
 export async function getSecret(pid) {
+    const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
+    const headersBody = {
+        'x-api-key': key,
+        'Authorization': apiToken
+    }
+
     // For local testing
     if(personalPidTestValue !== undefined) {
         pid = personalPidTestValue
@@ -65,6 +98,12 @@ export async function getSecret(pid) {
 
 // Set a tempSecret object on the user in the mongodb. This tempSecret has to verified before the secret is posted to the azuread object.
 export async function postMFA(pid) {
+    const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
+    const headersBody = {
+        'x-api-key': key,
+        'Authorization': apiToken
+    }
+
     // For local testing
     if(personalPidTestValue !== undefined) {
         pid = personalPidTestValue
@@ -85,6 +124,12 @@ export async function postMFA(pid) {
 
 // Verify that the 6 digit code that the user is showed in the selected application is a match with the 6 digit code expected. If its a success a secret will be posted to the azuread object.
 export async function verifyToken(token, pid, acr, amr) {
+    const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
+    const headersBody = {
+        'x-api-key': key,
+        'Authorization': apiToken
+    }
+
     // For local testing
     if(personalPidTestValue !== undefined) {
         pid = personalPidTestValue
@@ -109,6 +154,12 @@ export async function verifyToken(token, pid, acr, amr) {
 
 // Remove the MFA from the user in mongodb and in azuread.
 export async function deleteMFA(pid) {
+    const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
+    const headersBody = {
+        'x-api-key': key,
+        'Authorization': apiToken
+    }
+
     // For local testing
     if(personalPidTestValue !== undefined) {
         pid = personalPidTestValue
@@ -126,6 +177,11 @@ export async function deleteMFA(pid) {
 
 // Get the name of the user signed in to the application. 
 export async function getName(pid) {
+    const headersBody = {
+        'x-api-key': key,
+        'Authorization': apiToken
+    }
+
     // For local testing
     if(personalPidTestValue !== undefined) {
         pid = personalPidTestValue

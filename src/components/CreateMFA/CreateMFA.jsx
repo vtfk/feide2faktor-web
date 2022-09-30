@@ -14,11 +14,14 @@ import { checkUser, postMFA} from "../../utils/api"
 import { Name } from "../../utils/queries"
 
 export default function CreateMFA() {
-    const { isAuthenticated } = useSession()
+    const { isAuthenticated, logout } = useSession()
     const navigate = useNavigate()
 
-    // Get the pid
-    const pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
+    let pid
+    if(window.sessionStorage.getItem('IDPorten-AUTH') !== null) {
+        // Get the pid
+        pid = window.sessionStorage.getItem('IDPorten-AUTH').split(',')[4].split('"')[3]
+    }
 
     // States
     const [isLoading, setIsLoading] = useState(true)
@@ -61,6 +64,11 @@ export default function CreateMFA() {
             if(!didCancel) {
                 // Get data from the mongoDB
                 const checkMFA = await checkUser(pid)
+                if(checkMFA.data?.active === false) {
+                    window.sessionStorage.removeItem('selvbetjening-Auth')
+                    window.sessionStorage.removeItem('IDPorten-AUTH')
+                    logout()
+                } 
         
                 if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
                     // console.log('must verify')
@@ -123,7 +131,12 @@ export default function CreateMFA() {
             if(!didCancel && stateChange === true) {
                 const postMFAData = await postMFA(pid)
                 const data = await postMFAData
-                setMfaCreated(data)
+                setMfaCreated(await data)
+                if(postMFAData.data?.active === false) {
+                    window.sessionStorage.removeItem('selvbetjening-Auth')
+                    setTimeout(() => {  logout() }, 5000);
+                    setSnackOpen(true)
+                }
                 setIsButtonLoading(false)
             }
         }
@@ -184,6 +197,13 @@ export default function CreateMFA() {
                 autoHide={2000}
                 severity="error"
                 message="Oi, her gikk det galt. Prøv igjen."
+            />
+             <BasicSnackbar 
+                open={snackOpen && mfaCreated.data?.active === false}
+                onClose={handleClose}
+                autoHide={3000}
+                severity="info"
+                message="Du må logge inn på nytt, du blir nå logget ut"
             />
         </div>        
     )
