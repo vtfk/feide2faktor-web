@@ -15,7 +15,10 @@ if(checkSessionStorage !== null) {
 
 // Validate idporten token and return a valid API-token 
 export async function validateToken(token) {
-        return await axios.get(`${baseURL}validateToken/${token}`).then(res => res).catch((error) => {
+        const headersBody = {
+            'Access-Control-Allow-Origin': '*'
+        }
+        return await axios.get(`${baseURL}validateToken/${token}`, {headers: headersBody}).then(res => res).catch((error) => {
         if(error.res) {
             return error.res
         } else if(error.request) {
@@ -33,7 +36,8 @@ export async function checkUser(pid, apitoken) {
     }
     const headersBody = {
         'x-api-key': key,
-        'Authorization': apiToken 
+        'Authorization': apiToken,
+        'Access-Control-Allow-Origin': '*' 
     }
     // For local testing
     if(personalPidTestValue !== undefined) {
@@ -55,7 +59,8 @@ export async function getQrCode(pid) {
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
         'x-api-key': key,
-        'Authorization': apiToken
+        'Authorization': apiToken,
+        'Access-Control-Allow-Origin': '*'
     }
 
     // For local testing
@@ -78,7 +83,8 @@ export async function getSecret(pid) {
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
         'x-api-key': key,
-        'Authorization': apiToken
+        'Authorization': apiToken,
+        'Access-Control-Allow-Origin': '*'
     }
 
     // For local testing
@@ -101,7 +107,8 @@ export async function postMFA(pid) {
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
         'x-api-key': key,
-        'Authorization': apiToken
+        'Authorization': apiToken,
+        'Access-Control-Allow-Origin': '*'
     }
 
     // For local testing
@@ -127,7 +134,8 @@ export async function verifyToken(token, pid, acr, amr) {
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
         'x-api-key': key,
-        'Authorization': apiToken
+        'Authorization': apiToken,
+        'Access-Control-Allow-Origin': '*'
     }
 
     // For local testing
@@ -157,7 +165,8 @@ export async function deleteMFA(pid) {
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
         'x-api-key': key,
-        'Authorization': apiToken
+        'Authorization': apiToken,
+        'Access-Control-Allow-Origin': '*'
     }
 
     // For local testing
@@ -179,7 +188,8 @@ export async function deleteMFA(pid) {
 export async function getName(pid) {
     const headersBody = {
         'x-api-key': key,
-        'Authorization': apiToken
+        'Authorization': apiToken,
+        'Access-Control-Allow-Origin': '*'
     }
 
     // For local testing
