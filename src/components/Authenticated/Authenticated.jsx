@@ -35,6 +35,7 @@ export default function Authenticated() {
         }
         if(resultTokenValidation.data) {
             const name = 'selvbetjening-Auth'
+            console.log(resultTokenValidation.data.data)
             window.sessionStorage.setItem(name, resultTokenValidation.data.data)
             setIsLoading(false)
             navigate('/checkuser')
