@@ -16,9 +16,10 @@ if(checkSessionStorage !== null) {
 // Validate idporten token and return a valid API-token 
 export async function validateToken(token) {
         const headersBody = {
-            'Access-Control-Allow-Origin': '*'
+            'Access-Control-Allow-Origin': '*',
+            'Authorization': token
         }
-        return await axios.get(`${baseURL}validateToken/${token}`, {headers: headersBody}).then(res => res).catch((error) => {
+        return await axios.get(`${baseURL}validateToken`, {headers: headersBody}).then(res => res).catch((error) => {
         if(error.res) {
             return error.res
         } else if(error.request) {

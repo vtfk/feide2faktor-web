@@ -180,7 +180,6 @@ export default function Verified() {
             </div>
         )
     }
-    console.log(deleteData.data)
     if((checkedUser.data?.userMongo[0]?.secret && !checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod) || (!checkedUser.data?.userMongo[0]?.secret && checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod)) {
         return (
             <div className={styles.center}>

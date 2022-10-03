@@ -71,23 +71,18 @@ export default function CreateMFA() {
                 } 
         
                 if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.tempSecret) {
-                    // console.log('must verify')
                     navigate('/verifyMFA')
                 }
-                else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.tempSecret && !checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD?.norEduPersonAuthnMethod) {
-                    // console.log('User have no MFA, must create one.') 
+                else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.tempSecret && !checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD?.norEduPersonAuthnMethod) { 
                     navigate('/createmfa')
                 } 
                 else if(checkMFA.status === 200 && !checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD?.norEduPersonAuthnMethod && !checkMFA.data.userMongo[0]?.tempSecret) {
-                    // console.log('must recreate mfa, user not i mongo')
                     navigate('/createmfa')
                 } 
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
-                    // console.log('User already have mfa, do you want to recreate?')
                     navigate('/verified') 
                 }
                 else if(checkMFA.status === 200 && checkMFA.data.userMongo[0]?.secret && !checkMFA.data.userAzureAD.norEduPersonAuthnMethod) {
-                    // console.log('recreate mfa')
                     navigate('/verified') 
                 }
                 setIsLoading(false)
