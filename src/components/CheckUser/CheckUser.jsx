@@ -20,7 +20,6 @@ export default function CheckUser() {
     
     const fetchData = async () => {
         const checkUserRequest = await checkUser(pid, apiToken)
-        // console.log(checkUserRequest)
         await axios.all([checkUserRequest]).then(
             axios.spread((...data) => {
                 const userData = data[0]

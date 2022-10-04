@@ -42,9 +42,7 @@ export default function Header() {
     //         }
     //     }
     // }
-
-    
-    const results = Name(pid)
+    const results = Name(pid)  
     
     if(results.isLoading && pid !== '' && isAuthenticated) {
         return (
@@ -84,7 +82,7 @@ export default function Header() {
 
     if(results.data) {
         const letters = nameLetter(results.data)
-
+        
         displayName = results.data
         firstName = letters[0]
         lastName = letters[1]

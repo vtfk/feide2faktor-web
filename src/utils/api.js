@@ -36,7 +36,6 @@ export async function checkUser(pid, apitoken) {
         apiToken = apitoken
     }
     const headersBody = {
-        'x-api-key': key,
         'Authorization': apiToken,
         'Access-Control-Allow-Origin': '*' 
     }
@@ -59,7 +58,6 @@ export async function checkUser(pid, apitoken) {
 export async function getQrCode(pid) {    
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
-        'x-api-key': key,
         'Authorization': apiToken,
         'Access-Control-Allow-Origin': '*'
     }
@@ -83,7 +81,6 @@ export async function getQrCode(pid) {
 export async function getSecret(pid) {
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
-        'x-api-key': key,
         'Authorization': apiToken,
         'Access-Control-Allow-Origin': '*'
     }
@@ -107,7 +104,6 @@ export async function getSecret(pid) {
 export async function postMFA(pid) {
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
-        'x-api-key': key,
         'Authorization': apiToken,
         'Access-Control-Allow-Origin': '*'
     }
@@ -134,7 +130,6 @@ export async function postMFA(pid) {
 export async function verifyToken(token, pid, acr, amr) {
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
-        'x-api-key': key,
         'Authorization': apiToken,
         'Access-Control-Allow-Origin': '*'
     }
@@ -165,7 +160,6 @@ export async function verifyToken(token, pid, acr, amr) {
 export async function deleteMFA(pid) {
     const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
     const headersBody = {
-        'x-api-key': key,
         'Authorization': apiToken,
         'Access-Control-Allow-Origin': '*'
     }
@@ -187,37 +181,30 @@ export async function deleteMFA(pid) {
 
 // Get the name of the user signed in to the application. 
 export async function getName(pid) {
-    const headersBody = {
-        'x-api-key': key,
-        'Authorization': apiToken,
-        'Access-Control-Allow-Origin': '*'
-    }
-
-    // For local testing
-    if(personalPidTestValue !== undefined) {
-        pid = personalPidTestValue
-    }
-    if(pid === undefined) {
-        return undefined
-    } else {
-        // Get the mailadress
-        const mail = await axios.get(`${baseURL}checkuser/${pid}`, {headers: headersBody}).then(res => res.data.userAzureAD.mail).catch((error) => {
-            if(error.res) {
-                return error.res
-            } else if(error.request) {
-                return error.request
-            } else {
-                return ('Error:', error.message )
-            }
-        })
-        // Get the name from the mailadress and return the name
-        let name = mail.substring(0, mail.indexOf('@'))
-        name = name.replace('.', ' ')
-    
-        let splitName = name.toLowerCase().split(' ');
-        for (let i = 0; i < splitName.length; i++) {
-            splitName[i] = splitName[i].charAt(0).toUpperCase() + splitName[i].substring(1);     
+    const apiToken = window.sessionStorage.getItem('selvbetjening-Auth')
+    if (apiToken !== null) {
+        const headersBody = {
+            'Authorization': apiToken,
+            'Access-Control-Allow-Origin': '*'
         }
-       return splitName.join(' ');
-    } 
+
+        // For local testing
+        if(personalPidTestValue !== undefined) {
+            pid = personalPidTestValue
+        }
+        if(pid === undefined) {
+            return undefined
+        } else {
+            const name = await axios.get(`${baseURL}checkuser/${pid}`, {headers: headersBody}).then(res => res.data.userAzureAD.DisplayName).catch((error) => {
+                if(error.res) {
+                    return error.res
+                } else if(error.request) {
+                    return error.request
+                } else {
+                    return ('Error:', error.message )
+                }
+            })
+            return name
+        } 
+    }
 }
