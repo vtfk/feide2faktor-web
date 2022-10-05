@@ -12,6 +12,7 @@ import { checkUser, postMFA} from "../../utils/api"
 
 //Queries
 import { Name } from "../../utils/queries"
+import AnimateWarning from "../AnimateWarning"
 
 export default function CreateMFA() {
     const { isAuthenticated, logout } = useSession()
@@ -167,6 +168,9 @@ export default function CreateMFA() {
             </div>
             <div className={styles.heading}>
                 <Heading3>Du har ikke opprettet tofaktor til din konto, opprett tofaktor til din feidekonto ved å trykke på knappen under.</Heading3>
+            </div>
+            <div className={styles.warn}>
+                <AnimateWarning/>
             </div>
             <div className={styles.btn}>
                 {isButtonLoading ? (<Button spinner> Opprett Tofaktor</Button>) : (

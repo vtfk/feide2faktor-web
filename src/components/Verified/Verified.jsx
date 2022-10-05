@@ -11,6 +11,7 @@ import { checkUser, deleteMFA } from "../../utils/api"
 
 //Queries
 import { Name } from "../../utils/queries";
+import AnimateLock from "../AnimateLock/AnimateLock"
 
 export default function Verified() {
     const { isAuthenticated, logout, user } = useSession()
@@ -180,95 +181,99 @@ export default function Verified() {
             </div>
         )
     }
-    if((checkedUser.data?.userMongo[0]?.secret && !checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod) || (!checkedUser.data?.userMongo[0]?.secret && checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod)) {
-        return (
-            <div className={styles.center}>
-                <div className={styles.heading}>
-                    <Heading2>Hei {userName} </Heading2>
+    if(checkedUser.data.active !== false ) {
+        if((checkedUser.data?.userMongo[0]?.secret && !checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod) || (!checkedUser.data?.userMongo[0]?.secret && checkedUser.data?.userAzureAD?.norEduPersonAuthnMethod)) {
+            return (
+                <div className={styles.center}>
+                    <div className={styles.heading}>
+                        <Heading2>Hei {userName} </Heading2>
+                    </div>
+                    <div className={styles.heading}>
+                        <Heading3>
+                            Det ser ut som du allerede har aktivert tofaktor til din konto, men noe er galt. 
+                            <br/>Tilbakestill din tofaktor og opprett en ny ved å trykke på knappen under. 
+                        </Heading3>
+                    </div>    
+                    <div className={styles.btn}>
+                        {isButtonLoading ? (<Button spinner>Tilbakestill Tofaktor</Button>) : (<Button onClick={() => { 
+                            setDeleteState(true)
+                            setSnackOpen(true)
+                        }}
+                        disabled={snackOpen}
+                        >
+                            Tilbakestill Tofaktor
+                        </Button>)}
+                    </div>
+                    <BasicSnackbar 
+                        open={snackOpen && deleteData.status === 200 && isButtonLoading === false}
+                        onClose={handleClose}
+                        autoHide={2000}
+                        severity="success"
+                        message="Tofaktor er tilbakestilt."
+                    />
+                    <BasicSnackbar 
+                        open={snackOpen && (deleteData.status === 400 || deleteData.status === 404) && isButtonLoading === false}
+                        onClose={handleClose}
+                        autoHide={2000}
+                        severity="error"
+                        message="Oi, her gikk det galt. Prøv igjen."
+                    />
+                    <BasicSnackbar 
+                        open={snackOpen && deleteData.data?.active === false}
+                        onClose={handleClose}
+                        autoHide={3000}
+                        severity="info"
+                        message="Du må logge inn på nytt, du blir nå logget ut"
+                    />
                 </div>
-                <div className={styles.heading}>
-                    <Heading3>
-                        Det ser ut som du allerede har aktivert tofaktor til din konto, men noe er galt. 
-                        <br/>Tilbakestill din tofaktor og opprett en ny ved å trykke på knappen under. 
-                    </Heading3>
-                </div>    
-                <div className={styles.btn}>
-                    {isButtonLoading ? (<Button spinner>Tilbakestill Tofaktor</Button>) : (<Button onClick={() => { 
-                        setDeleteState(true)
-                        setSnackOpen(true)
-                    }}
-                    disabled={snackOpen}
-                    >
-                        Tilbakestill Tofaktor
-                    </Button>)}
+            )
+        } else {
+            return (
+                <div className={styles.center}>
+                    <div className={styles.heading}>
+                        <Heading2>Hei {userName} </Heading2>
+                    </div>
+                    <div className={styles.heading}>
+                        <Heading3>
+                            Du har allerede opprettet tofaktor til din konto, ønsker du å slette den gamle og opprette en ny? 
+                        </Heading3>
+                    </div>
+                    <div className={styles.lock}>
+                        <AnimateLock/>
+                    </div>    
+                    <div className={styles.btn}>
+                        {isButtonLoading ? (<Button spinner> Opprett ny Tofaktor</Button>) : (<Button onClick={() => { 
+                            setDeleteState(true)
+                            setSnackOpen(true)
+                        }}
+                        disabled={snackOpen}
+                        >
+                            Opprett ny Tofaktor
+                        </Button>)}
+                    </div>
+                    <BasicSnackbar 
+                        open={snackOpen && deleteData.status === 200 && isButtonLoading === false}
+                        onClose={handleClose}
+                        autoHide={2000}
+                        severity="success"
+                        message="Tofaktor er tilbakestilt."
+                    />
+                    <BasicSnackbar 
+                        open={snackOpen && (deleteData.status === 400 || deleteData.status === 404) && isButtonLoading === false}
+                        onClose={handleClose}
+                        autoHide={2000}
+                        severity="error"
+                        message="Oi, her gikk det galt. Prøv igjen."
+                    />
+                    <BasicSnackbar 
+                        open={snackOpen && deleteData.data?.active === false}
+                        onClose={handleClose}
+                        autoHide={3000}
+                        severity="info"
+                        message="Du må logge inn på nytt, du blir nå logget ut"
+                    />
                 </div>
-                <BasicSnackbar 
-                    open={snackOpen && deleteData.status === 200 && isButtonLoading === false}
-                    onClose={handleClose}
-                    autoHide={2000}
-                    severity="success"
-                    message="Tofaktor er tilbakestilt."
-                />
-                <BasicSnackbar 
-                    open={snackOpen && (deleteData.status === 400 || deleteData.status === 404) && isButtonLoading === false}
-                    onClose={handleClose}
-                    autoHide={2000}
-                    severity="error"
-                    message="Oi, her gikk det galt. Prøv igjen."
-                />
-                <BasicSnackbar 
-                    open={snackOpen && deleteData.data?.active === false}
-                    onClose={handleClose}
-                    autoHide={3000}
-                    severity="info"
-                    message="Du må logge inn på nytt, du blir nå logget ut"
-                />
-            </div>
-        )
-    } else {
-        return (
-            <div className={styles.center}>
-                <div className={styles.heading}>
-                    <Heading2>Hei {userName} </Heading2>
-                </div>
-                <div className={styles.heading}>
-                    <Heading3>
-                        Du har allerede opprettet tofaktor til din konto, ønsker du å slette den gamle og opprette en ny? 
-                    </Heading3>
-                </div>    
-                <div className={styles.btn}>
-                    {isButtonLoading ? (<Button spinner> Opprett ny Tofaktor</Button>) : (<Button onClick={() => { 
-                        setDeleteState(true)
-                        setSnackOpen(true)
-                    }}
-                    disabled={snackOpen}
-                    >
-                        Opprett ny Tofaktor
-                    </Button>)}
-                </div>
-                <BasicSnackbar 
-                    open={snackOpen && deleteData.status === 200 && isButtonLoading === false}
-                    onClose={handleClose}
-                    autoHide={2000}
-                    severity="success"
-                    message="Tofaktor er tilbakestilt."
-                />
-                <BasicSnackbar 
-                    open={snackOpen && (deleteData.status === 400 || deleteData.status === 404) && isButtonLoading === false}
-                    onClose={handleClose}
-                    autoHide={2000}
-                    severity="error"
-                    message="Oi, her gikk det galt. Prøv igjen."
-                />
-                <BasicSnackbar 
-                    open={snackOpen && deleteData.data?.active === false}
-                    onClose={handleClose}
-                    autoHide={3000}
-                    severity="info"
-                    message="Du må logge inn på nytt, du blir nå logget ut"
-                />
-            </div>
-        )
-    }
-    
+            )
+        }
+    }      
 } 

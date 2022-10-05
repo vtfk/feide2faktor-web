@@ -1,7 +1,6 @@
 import axios from "axios"
 
 const baseURL = process.env.REACT_APP_API_URL
-const key = process.env.REACT_APP_API_KEY_AZF
 
 // Ditt personlige fnr. Da det ikke er mulig å lage reele test personer til ViS må du bruke deg selv eller noen du kjenner som test person. 
 // NB! Du vil slette og opprete 2 faktor til feide ved å bruke ditt fnr i denne applikasjonen om du har en feide bruker.

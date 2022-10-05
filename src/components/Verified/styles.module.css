@@ -28,3 +28,9 @@
     justify-content:center;
     margin: 1rem;
 }
+
+.lock {
+    display: flex;
+    margin-bottom: -25%;
+    justify-content: center;
+}

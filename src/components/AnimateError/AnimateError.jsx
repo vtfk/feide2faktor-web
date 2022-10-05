@@ -1,4 +1,3 @@
-import react from "react"
 import styles from './styles.module.css'
 import { useEffect, useRef } from "react"
 import Lottie from "lottie-web"
